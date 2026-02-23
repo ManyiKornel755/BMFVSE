@@ -166,6 +166,37 @@ CREATE TABLE IF NOT EXISTS group_members (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Transactions table
+CREATE TABLE IF NOT EXISTS transactions (
+    id               INT            PRIMARY KEY AUTO_INCREMENT,
+    user_id          INT,
+    amount           DECIMAL(12, 2) NOT NULL,
+    transaction_type VARCHAR(50)    NOT NULL COMMENT 'income | expense',
+    category         VARCHAR(100),
+    description      TEXT,
+    transaction_date DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at       TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_transaction_type (transaction_type),
+    INDEX idx_transaction_date (transaction_date),
+    INDEX idx_category         (category)
+);
+
+-- User documents table (generated PDFs, certificates, etc.)
+CREATE TABLE IF NOT EXISTS user_documents (
+    id            INT          PRIMARY KEY AUTO_INCREMENT,
+    user_id       INT          NOT NULL,
+    document_type VARCHAR(100) NOT NULL,
+    file_path     VARCHAR(500) NOT NULL,
+    generated_by  INT,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id)      REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (generated_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_user_id       (user_id),
+    INDEX idx_document_type (document_type)
+);
+
 -- Insert default roles
 INSERT INTO roles (name, description) VALUES
     ('admin', 'Administrator with full access'),
@@ -174,9 +205,8 @@ INSERT INTO roles (name, description) VALUES
 ON DUPLICATE KEY UPDATE description=VALUES(description);
 
 -- Insert default admin user (password: Admin123!)
--- Password hash for: Admin123!
 INSERT INTO users (email, password_hash, first_name, last_name, is_member) VALUES
-    ('admin@wavealert.com', '$2a$10$YourHashHere', 'Admin', 'User', TRUE)
+    ('admin@wavealert.com', '$2a$10$s3RKsqiFfHHfIQh2W9OuheI8DUkeG7elY2jNd9mWwDn7cAECFxccK', 'Admin', 'Felhasználó', TRUE)
 ON DUPLICATE KEY UPDATE email=VALUES(email);
 
 -- Assign admin role to admin user
