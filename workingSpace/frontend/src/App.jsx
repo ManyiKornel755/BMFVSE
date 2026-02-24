@@ -15,6 +15,7 @@ import Trainings from './pages/Trainings';
 import Messages from './pages/Messages';
 import RaceReports from './pages/RaceReports';
 import Profile from './pages/Profile';
+import Emails from './pages/Emails';
 
 function App() {
   return (
@@ -76,7 +77,13 @@ function App() {
               <Profile />
             </PrivateRoute>
           } />
-          
+
+          <Route path="/emails" element={
+            <AdminRoute>
+              <Emails />
+            </AdminRoute>
+          } />
+
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>

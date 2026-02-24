@@ -28,6 +28,11 @@ app.use('/api/messages', require('./src/routes/messages'));
 app.use('/api/trainings', require('./src/routes/trainings'));
 app.use('/api/documents', require('./src/routes/documents'));
 app.use('/api/race-reports', require('./src/routes/race-reports'));
+app.use('/api/users', require('./src/routes/users'));
+app.use('/api/roles', require('./src/routes/roles'));
+app.use('/api/events', require('./src/routes/events'));
+app.use('/api/user-documents', require('./src/routes/user-documents'));
+app.use('/api/emails', require('./src/routes/emails'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -48,8 +53,8 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 module.exports = app;
