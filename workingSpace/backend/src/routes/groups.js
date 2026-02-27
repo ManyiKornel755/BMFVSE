@@ -1,15 +1,14 @@
 const express = require('express');
 const Group = require('../models/Group');
-const { authenticate, isAdmin } = require('../middlewares/auth');
+const { authenticate, isAdminOrCoach } = require('../middlewares/auth');
 
 const router = express.Router();
 
-// All routes require authentication and admin access
+// All routes require authentication
 router.use(authenticate);
-router.use(isAdmin);
 
 // GET /api/groups - Get all groups with member count
-router.get('/', async (req, res, next) => {
+router.get('/', isAdminOrCoach, async (req, res, next) => {
   try {
     const groups = await Group.getAllWithMemberCount();
     res.json(groups);
@@ -19,7 +18,7 @@ router.get('/', async (req, res, next) => {
 });
 
 // GET /api/groups/:id - Get group by ID
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', isAdminOrCoach, async (req, res, next) => {
   try {
     const group = await Group.findById(req.params.id);
 
@@ -37,7 +36,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST /api/groups - Create new group
-router.post('/', async (req, res, next) => {
+router.post('/', isAdminOrCoach, async (req, res, next) => {
   try {
     const { name } = req.body;
 
@@ -60,7 +59,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // PUT /api/groups/:id - Update group name
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', isAdminOrCoach, async (req, res, next) => {
   try {
     const { name } = req.body;
 
@@ -82,7 +81,7 @@ router.put('/:id', async (req, res, next) => {
 });
 
 // DELETE /api/groups/:id - Soft delete group
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', isAdminOrCoach, async (req, res, next) => {
   try {
     await Group.delete(req.params.id);
     res.json({ message: 'Group deleted successfully' });
@@ -92,7 +91,7 @@ router.delete('/:id', async (req, res, next) => {
 });
 
 // GET /api/groups/:id/members - Get all members of a group
-router.get('/:id/members', async (req, res, next) => {
+router.get('/:id/members', isAdminOrCoach, async (req, res, next) => {
   try {
     const members = await Group.getMembers(req.params.id);
     res.json(members);
@@ -102,7 +101,7 @@ router.get('/:id/members', async (req, res, next) => {
 });
 
 // POST /api/groups/:id/members - Add member(s) to group
-router.post('/:id/members', async (req, res, next) => {
+router.post('/:id/members', isAdminOrCoach, async (req, res, next) => {
   try {
     const { userIds } = req.body;
 
@@ -147,7 +146,7 @@ router.post('/:id/members', async (req, res, next) => {
 });
 
 // DELETE /api/groups/:id/members/:userId - Remove member from group
-router.delete('/:id/members/:userId', async (req, res, next) => {
+router.delete('/:id/members/:userId', isAdminOrCoach, async (req, res, next) => {
   try {
     await Group.removeMember(req.params.id, req.params.userId);
     res.json({ message: 'Member removed successfully' });

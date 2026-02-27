@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
+import { useAuth } from '../utils/AuthContext';
 import api from '../services/api';
 
 const Groups = () => {
+  const { isAdminOrCoach: canManage } = useAuth();
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -168,9 +170,11 @@ const Groups = () => {
       <div className="container">
         <div className="page-header">
           <h1>Csoportok</h1>
-          <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">
-            Csoport létrehozása
-          </button>
+          {canManage() && (
+            <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">
+              Csoport létrehozása
+            </button>
+          )}
         </div>
 
         {error && <div className="alert alert-danger">{error}</div>}
@@ -181,7 +185,7 @@ const Groups = () => {
               <tr>
                 <th>Csoport neve</th>
                 <th>Tagok</th>
-                <th>Műveletek</th>
+                {canManage() && <th>Műveletek</th>}
               </tr>
             </thead>
             <tbody>
@@ -194,14 +198,16 @@ const Groups = () => {
                   <tr key={group.id}>
                     <td>{group.name}</td>
                     <td>{group.member_count || 0}</td>
-                    <td>
-                      <button onClick={() => openEditModal(group)} className="btn btn-secondary btn-mr">
-                        Szerkesztés
-                      </button>
-                      <button onClick={() => handleDeleteGroup(group.id)} className="btn btn-danger">
-                        Törlés
-                      </button>
-                    </td>
+                    {canManage() && (
+                      <td>
+                        <button onClick={() => openEditModal(group)} className="btn btn-secondary btn-mr">
+                          Szerkesztés
+                        </button>
+                        <button onClick={() => handleDeleteGroup(group.id)} className="btn btn-danger">
+                          Törlés
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
