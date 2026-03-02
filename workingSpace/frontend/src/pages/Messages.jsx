@@ -39,7 +39,7 @@ export default function Messages() {
       await api.post(`/messages/${msg.id}/send`);
       alert('Hírlevél elküldve!');
       fetchAll();
-    } catch(err) { alert('Hiba a kldés során!'); }
+    } catch(err) { alert('Hiba a küldés során!'); }
   }
 
   async function handleDelete(id) {
@@ -76,7 +76,7 @@ export default function Messages() {
               </div>
               {isAdmin() && (
                 <div className="message-item-actions">
-                  {msg.status === 'draft' && <button className="btn" onClick={() => handleSend(msg)}>Kldés</button>}
+                  {msg.status === 'draft' && <button className="btn" onClick={() => handleSend(msg)}>Küldés</button>}
                   <button className="btn btn-danger" onClick={() => handleDelete(msg.id)}>Törlés</button>
                 </div>)}
             </div>))}

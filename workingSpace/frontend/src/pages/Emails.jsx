@@ -38,7 +38,7 @@ export default function Emails() {
       setFeedback({ type: 'success', message: 'Email sikeresen elküldve ' + recipients.length + ' címzettnek!' });
       setSubject(''); setContent(''); setSelectedEmails([]); setManualEmails('');
     } catch(err) {
-      setFeedback({ type: 'error', message: 'Hiba az email kldésekor: ' + (err.response?.data?.message || err.message) });
+      setFeedback({ type: 'error', message: 'Hiba az email küldésekor: ' + (err.response?.data?.message || err.message) });
     } finally { setLoading(false); }
   }
 
@@ -47,7 +47,7 @@ export default function Emails() {
   return (
     <div><Navbar />
       <div className="container">
-        <h1>Email Kldés</h1>
+        <h1>Email Küldés</h1>
         {feedback && (
           <div className={`feedback feedback-${feedback.type}`}>
             {feedback.message}
@@ -73,18 +73,18 @@ export default function Emails() {
               <div className="scroll-list-sm">
                 {selectedEmails.map(e => <div key={e} className="email-small">{e}</div>)}
               </div>
-              <label>Egyedi emailek (vesszvel elválasztva):</label>
+              <label>Egyedi emailek (vesszővel elválasztva):</label>
               <input className="form-input" value={manualEmails} onChange={e => setManualEmails(e.target.value)} placeholder="email1@example.com, email2@example.com" />
             </div>
             <div className="card">
-              <h2>Uzenet</h2>
+              <h2>Üzenet</h2>
               <form onSubmit={handleSend}>
                 <label>Tárgy:</label>
                 <input className="form-input" value={subject} onChange={e => setSubject(e.target.value)} required />
                 <label>Tartalom:</label>
                 <textarea className="form-input" rows={6} value={content} onChange={e => setContent(e.target.value)} required />
                 <button className="btn" type="submit" disabled={loading}>
-                  {loading ? 'Kldés...' : 'Email kldése'}
+                  {loading ? 'Küldés...' : 'Email küldése'}
                 </button>
               </form>
             </div>

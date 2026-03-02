@@ -33,20 +33,20 @@ export default function Members() {
     e.preventDefault();
     try {
       await api.put(`/members/${selectedMember.id}`, editForm);
-      alert('Tag sikeresen frissitve!'); setSelectedMember(null); fetchMembers();
-    } catch(err) { alert('Hiba a frissites soran!'); }
+      alert('Tag sikeresen frissítve!'); setSelectedMember(null); fetchMembers();
+    } catch(err) { alert('Hiba a frissítés során!'); }
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('Biztosan torli ezt a tagot?')) return;
-    try { await api.delete(`/members/${id}`); alert('Tag torolve!'); setSelectedMember(null); fetchMembers(); }
-    catch(err) { alert('Hiba a torles soran!'); }
+    if (!window.confirm('Biztosan törli ezt a tagot?')) return;
+    try { await api.delete(`/members/${id}`); alert('Tag törölve!'); setSelectedMember(null); fetchMembers(); }
+    catch(err) { alert('Hiba a törlés során!'); }
   }
 
   async function handleCreate(e) {
     e.preventDefault();
-    try { await api.post('/members', createForm); alert('Tag sikeresen letrehozva!'); setShowCreate(false); setCreateForm({ first_name: '', last_name: '', email: '', password: '', phone: '' }); fetchMembers(); }
-    catch(err) { alert('Hiba a letrehozas soran!'); }
+    try { await api.post('/members', createForm); alert('Tag sikeresen létrehozva!'); setShowCreate(false); setCreateForm({ first_name: '', last_name: '', email: '', password: '', phone: '' }); fetchMembers(); }
+    catch(err) { alert('Hiba a létrehozás során!'); }
   }
 
   const sorted = [...members].sort((a, b) => {
@@ -55,7 +55,7 @@ export default function Members() {
     return sortOrder === 'asc' ? nA.localeCompare(nB) : nB.localeCompare(nA);
   });
 
-  const statusLabel = { active: 'Aktiv', inactive: 'Inaktiv', pending: 'Fuggoben' };
+  const statusLabel = { active: 'Aktív', inactive: 'Inaktív', pending: 'Függőben' };
 
   return (
     <div><Navbar />

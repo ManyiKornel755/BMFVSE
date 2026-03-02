@@ -44,21 +44,21 @@ export default function Dashboard() {
   const sentMessages = messages.filter(m => m.status === 'sent');
   const recentMembers = members.slice(0, 5);
   const upcomingTrainings = trainings.filter(t => new Date(t.event_date) >= new Date());
-  const statusLabel = { active: 'Aktiv', inactive: 'Inaktiv', pending: 'Fuggoben' };
+  const statusLabel = { active: 'Aktív', inactive: 'Inaktív', pending: 'Függőben' };
 
   return (
     <div><Navbar />
       <div className="container">
-        <h1>Vezerlopult</h1>
-        {loading && <p>Betoltes...</p>}
+        <h1>Vezérlőpult</h1>
+        {loading && <p>Betöltés...</p>}
         {isAdmin() && (
           <>
             <div className="stats-row">
               {[
-                { label: 'Osszes tag', value: members.length },
-                { label: 'Aktiv tagok', value: activeMembers.length },
-                { label: 'Hirlevelek szama', value: sentMessages.length },
-                { label: 'Tervezett hirlevelek', value: draftMessages.length },
+                { label: 'Összes tag', value: members.length },
+                { label: 'Aktív tagok', value: activeMembers.length },
+                { label: 'Hírlevelek száma', value: sentMessages.length },
+                { label: 'Tervezett hírlevelek', value: draftMessages.length },
               ].map(card => (
                 <div key={card.label} className="card stat-card">
                   <h2 className="stat-value">{card.value}</h2>
@@ -66,10 +66,10 @@ export default function Dashboard() {
                 </div>))}
             </div>
             <div className="card card-mb-lg">
-              <h2>Legutobbi tagok</h2>
+              <h2>Legutóbbi tagok</h2>
               <table className="data-table">
                 <thead><tr>
-                  {['Keresztnev', 'Vezeteknev', 'Email', 'Telefon', 'Allapot'].map(h => (
+                  {['Keresztnév', 'Vezetéknév', 'Email', 'Telefon', 'Állapot'].map(h => (
                     <th key={h}>{h}</th>))}
                 </tr></thead>
                 <tbody>
@@ -92,8 +92,8 @@ export default function Dashboard() {
         )}
         <div className="grid-2">
           <div className="card">
-            <h2>Uzenetek</h2>
-            {messages.length === 0 && <p>Nincs uzenet.</p>}
+            <h2>Üzenetek</h2>
+            {messages.length === 0 && <p>Nincs üzenet.</p>}
             {messages.map(msg => (
               <div key={msg.id} className="list-item" onClick={() => setSelectedMessage(msg)}>
                 <strong>{msg.title}</strong>
@@ -102,8 +102,8 @@ export default function Dashboard() {
               </div>))}
           </div>
           <div className="card">
-            <h2>Kozelgo edzesek</h2>
-            {upcomingTrainings.length === 0 && <p>Nincs kozelgo edzes.</p>}
+            <h2>Közelgő edzések</h2>
+            {upcomingTrainings.length === 0 && <p>Nincs közelgő edzés.</p>}
             {upcomingTrainings.map(tr => (
               <div key={tr.id} className="list-item" onClick={() => openTraining(tr)}>
                 <strong>{tr.title}</strong>
@@ -118,24 +118,24 @@ export default function Dashboard() {
               <h2>{selectedMessage.title}</h2>
               <p className="message-detail-content">{selectedMessage.content}</p>
               <small className="text-faint">{new Date(selectedMessage.created_at).toLocaleString('hu-HU')}</small><br />
-              <button className="btn mt-16" onClick={() => setSelectedMessage(null)}>Bezaras</button>
+              <button className="btn mt-16" onClick={() => setSelectedMessage(null)}>Bezárás</button>
             </div>
           </div>)}
         {selectedTraining && (
           <div className="modal-overlay" onClick={() => { setSelectedTraining(null); setTrainingDetail(null); }}>
             <div className="modal-box" onClick={e => e.stopPropagation()}>
               <h2>{selectedTraining.title}</h2>
-              <p><strong>Idopont:</strong> {new Date(selectedTraining.event_date).toLocaleString('hu-HU')}</p>
-              <p><strong>Helyszin:</strong> {selectedTraining.location}</p>
-              {trainingDetail && (<><p><strong>Leiras:</strong> {trainingDetail.description}</p>
-                <p><strong>Resztvevok:</strong> {trainingDetail.participants_count ?? (trainingDetail.participants ? trainingDetail.participants.length : 0)}</p></>)}
+              <p><strong>Időpont:</strong> {new Date(selectedTraining.event_date).toLocaleString('hu-HU')}</p>
+              <p><strong>Helyszín:</strong> {selectedTraining.location}</p>
+              {trainingDetail && (<><p><strong>Leírás:</strong> {trainingDetail.description}</p>
+                <p><strong>Résztvevők:</strong> {trainingDetail.participants_count ?? (trainingDetail.participants ? trainingDetail.participants.length : 0)}</p></>)}
               {!isAdmin() && (
                 <div className="mt-16">
                   {registeredEvents.includes(selectedTraining.id) ? (
-                    <button className="btn btn-danger" onClick={() => handleUnregister(selectedTraining.id)}>Leiratkozas</button>
-                  ) : (<button className="btn" onClick={() => handleRegister(selectedTraining.id)}>Jelentkezes</button>)}
+                    <button className="btn btn-danger" onClick={() => handleUnregister(selectedTraining.id)}>Leiratkozás</button>
+                  ) : (<button className="btn" onClick={() => handleRegister(selectedTraining.id)}>Jelentkezés</button>)}
                 </div>)}
-              <button className="btn mt-16 ml-8" onClick={() => { setSelectedTraining(null); setTrainingDetail(null); }}>Bezaras</button>
+              <button className="btn mt-16 ml-8" onClick={() => { setSelectedTraining(null); setTrainingDetail(null); }}>Bezárás</button>
             </div>
           </div>)}
       </div>
