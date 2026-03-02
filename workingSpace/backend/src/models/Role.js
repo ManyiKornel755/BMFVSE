@@ -1,109 +1,97 @@
-// Import: const { pool } = require('../config/database')
-const { pool } = require('../config/database');
+const { sql, poolPromise } = require('../config/database');
 
 class Role {
-  // Get all roles
   static async getAll() {
-    const [rows] = await pool.query('SELECT * FROM roles ORDER BY name');
-    return rows;
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .query('SELECT * FROM roles ORDER BY name');
+    return result.recordset;
   }
 
-  // Find role by ID
   static async findById(id) {
-    const [rows] = await pool.query('SELECT * FROM roles WHERE id = ?', [id]);
-    return rows[0];
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT * FROM roles WHERE id = @id');
+    return result.recordset[0] || null;
   }
 
-  // Create new role
   static async create({ name, description }) {
-    const [result] = await pool.query(
-      'INSERT INTO roles (name, description) VALUES (?, ?)',
-      [name, description || null]
-    );
-    return { id: result.insertId, name, description };
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('name', sql.NVarChar, name)
+      .input('description', sql.NVarChar, description || null)
+      .query('INSERT INTO roles (name, description) OUTPUT INSERTED.id VALUES (@name, @description)');
+    return this.findById(result.recordset[0].id);
   }
 
-  // Update role
   static async update(id, data) {
+    const pool = await poolPromise;
+    const request = pool.request().input('id', sql.Int, id);
     const fields = [];
-    const values = [];
 
     if (data.name !== undefined) {
-      fields.push('name = ?');
-      values.push(data.name);
+      fields.push('name = @name');
+      request.input('name', sql.NVarChar, data.name);
     }
-
     if (data.description !== undefined) {
-      fields.push('description = ?');
-      values.push(data.description);
+      fields.push('description = @description');
+      request.input('description', sql.NVarChar, data.description);
     }
 
-    if (fields.length === 0) {
-      throw new Error('No fields to update');
-    }
+    if (fields.length === 0) throw new Error('No fields to update');
 
-    values.push(id);
-
-    const [result] = await pool.query(
-      `UPDATE roles SET ${fields.join(', ')} WHERE id = ?`,
-      values
-    );
-
-    if (result.affectedRows === 0) {
-      throw new Error('Role not found');
-    }
-
+    const result = await request.query(`UPDATE roles SET ${fields.join(', ')} WHERE id = @id`);
+    if (result.rowsAffected[0] === 0) throw new Error('Role not found');
     return this.findById(id);
   }
 
-  // Delete role
   static async delete(id) {
-    // First, remove all user_roles associations
-    await pool.query('DELETE FROM user_roles WHERE role_id = ?', [id]);
-
-    const [result] = await pool.query('DELETE FROM roles WHERE id = ?', [id]);
-
-    if (result.affectedRows === 0) {
-      throw new Error('Role not found');
-    }
-
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('DELETE FROM roles WHERE id = @id');
+    if (result.rowsAffected[0] === 0) throw new Error('Role not found');
     return { message: 'Role deleted successfully' };
   }
 
-  // Assign role to user
   static async assignToUser(userId, roleId) {
-    const [result] = await pool.query(
-      'INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)',
-      [userId, roleId]
-    );
+    const pool = await poolPromise;
+    const check = await pool.request()
+      .input('userId', sql.Int, userId)
+      .input('roleId', sql.Int, roleId)
+      .query('SELECT 1 FROM user_roles WHERE user_id = @userId AND role_id = @roleId');
+    if (check.recordset.length === 0) {
+      await pool.request()
+        .input('userId', sql.Int, userId)
+        .input('roleId', sql.Int, roleId)
+        .query('INSERT INTO user_roles (user_id, role_id) VALUES (@userId, @roleId)');
+    }
     return { userId, roleId };
   }
 
-  // Remove role from user
   static async removeFromUser(userId, roleId) {
-    const [result] = await pool.query(
-      'DELETE FROM user_roles WHERE user_id = ? AND role_id = ?',
-      [userId, roleId]
-    );
-
-    if (result.affectedRows === 0) {
-      throw new Error('Role assignment not found');
-    }
-
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('userId', sql.Int, userId)
+      .input('roleId', sql.Int, roleId)
+      .query('DELETE FROM user_roles WHERE user_id = @userId AND role_id = @roleId');
+    if (result.rowsAffected[0] === 0) throw new Error('Role assignment not found');
     return { message: 'Role removed from user successfully' };
   }
 
-  // Get all roles for a user
   static async getUserRoles(userId) {
-    const [rows] = await pool.query(
-      `SELECT r.*
-       FROM roles r
-       INNER JOIN user_roles ur ON r.id = ur.role_id
-       WHERE ur.user_id = ?
-       ORDER BY r.name`,
-      [userId]
-    );
-    return rows;
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('userId', sql.Int, userId)
+      .query(`
+        SELECT r.*
+        FROM roles r
+        INNER JOIN user_roles ur ON r.id = ur.role_id
+        WHERE ur.user_id = @userId
+        ORDER BY r.name
+      `);
+    return result.recordset;
   }
 }
 

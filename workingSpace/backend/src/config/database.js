@@ -1,41 +1,44 @@
 const sql = require('mssql');
 require('dotenv').config();
 
-// SQL Server configuration
 const config = {
-  server: process.env.DB_SERVER || 'localhost\\SQLEXPRESS',
+  server: process.env.DB_SERVER || 'localhost\SQLEXPRESS',
   database: process.env.DB_NAME || 'WaveAlertDB',
-  user: process.env.DB_USER || 'sa',
+  user: process.env.DB_USER || 'webuser',
   password: process.env.DB_PASSWORD || '',
   options: {
     encrypt: process.env.DB_ENCRYPT === 'true',
-    trustServerCertificate: process.env.DB_TRUST_CERT === 'true' || true,
+    trustServerCertificate: process.env.DB_TRUST_CERT !== 'false',
     enableArithAbort: true,
-    connectionTimeout: 30000,
+    connectionTimeout: 15000,
     requestTimeout: 30000
   },
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000
-  }
+  pool: { max: 10, min: 0, idleTimeoutMillis: 30000 }
 };
 
-// Create connection pool
 const poolPromise = new sql.ConnectionPool(config)
   .connect()
   .then(pool => {
-    console.log('✅ SQL Server connected successfully');
+    console.log('SQL Server kapcsolodva');
     return pool;
   })
   .catch(err => {
-    console.error('❌ SQL Server connection failed:', err.message);
-    throw err;
+    console.error('SQL Server kapcsolodasi hiba:', err.message);
+    console.error('-> Ellenorizd az SQL Server beallitasokat a .env fajlban!');
+    return Promise.reject(err);
   });
 
-// Export both pool promise and sql for queries
-module.exports = {
-  sql,
-  poolPromise,
-  config
-};
+// Prevent unhandled rejection crash
+poolPromise.catch(() => {});
+
+async function testConnection() {
+  try {
+    const pool = await poolPromise;
+    await pool.request().query('SELECT 1');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+module.exports = { sql, poolPromise, testConnection };
