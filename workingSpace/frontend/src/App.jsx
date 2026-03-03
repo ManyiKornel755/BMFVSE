@@ -14,6 +14,7 @@ import Groups from './pages/Groups';
 import Trainings from './pages/Trainings';
 import Messages from './pages/Messages';
 import RaceReports from './pages/RaceReports';
+import RaceMinuteForm from './pages/RaceMinuteForm';
 import Profile from './pages/Profile';
 import Emails from './pages/Emails';
 
@@ -69,6 +70,18 @@ function App() {
           <Route path="/race-reports" element={
             <AdminRoute>
               <RaceReports />
+            </AdminRoute>
+          } />
+
+          <Route path="/race-minutes/new" element={
+            <AdminRoute>
+              <RaceMinuteForm />
+            </AdminRoute>
+          } />
+
+          <Route path="/race-minutes/edit/:id" element={
+            <AdminRoute>
+              <RaceMinuteForm />
             </AdminRoute>
           } />
           

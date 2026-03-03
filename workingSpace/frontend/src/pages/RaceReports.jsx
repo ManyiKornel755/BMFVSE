@@ -1,40 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
-import { useAuth } from '../utils/AuthContext';
 
 const RaceReports = () => {
-  const [reports, setReports] = useState([]);
-  const { isAdmin } = useAuth();
+  const [minutes, setMinutes] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchReports();
+    fetchMinutes();
   }, []);
 
-  const fetchReports = async () => {
+  const fetchMinutes = async () => {
     try {
-      const response = await api.get('/race-reports');
-      setReports(response.data);
+      const response = await api.get('/race-minutes');
+      setMinutes(response.data);
     } catch (error) {
-      console.error('Failed to fetch race reports:', error);
+      console.error('Failed to fetch race minutes:', error);
     }
   };
 
-  const handleExport = async (id, raceName) => {
+  const handlePdf = async (id, futam_szama) => {
     try {
-      const response = await api.get(`/race-reports/${id}/export`, {
-        responseType: 'blob'
-      });
-      
+      const response = await api.get(`/race-minutes/${id}/pdf`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${raceName.replace(/\s+/g, '_')}.pdf`);
+      link.setAttribute('download', `versenyjegyzokonyv_${futam_szama || '1'}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Failed to export race report:', error);
+      console.error('Failed to download PDF:', error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Biztosan törli ezt a versenyjegyzőkönyvet?')) return;
+    try {
+      await api.delete(`/race-minutes/${id}`);
+      setMinutes(prev => prev.filter(m => m.id !== id));
+    } catch (error) {
+      console.error('Failed to delete:', error);
     }
   };
 
@@ -42,35 +50,54 @@ const RaceReports = () => {
     <div>
       <Navbar />
       <div className="container">
-        <h1>Versenyjegyzőkönyvek</h1>
+        <div className="page-header">
+          <h1>Versenyjegyzőkönyvek</h1>
+          <button className="btn btn-primary" onClick={() => navigate('/race-minutes/new')}>
+            + Új versenyjegyzőkönyv
+          </button>
+        </div>
         <div className="card">
-          <table>
+          <table className="data-table">
             <thead>
               <tr>
                 <th>Verseny neve</th>
-                <th>Dátum</th>
+                <th>Futam száma</th>
+                <th>Korosztály</th>
                 <th>Helyszín</th>
-                <th>Státusz</th>
-                <th>Műveletek</th>
+                <th>Ideje</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
-              {reports.map((report) => (
-                <tr key={report.id}>
-                  <td>{report.race_name}</td>
-                  <td>{new Date(report.race_date).toLocaleDateString('hu-HU')}</td>
-                  <td>{report.location || '—'}</td>
-                  <td>{report.status}</td>
+              {minutes.map(m => (
+                <tr key={m.id}>
+                  <td>{m.verseny_neve || '—'}</td>
+                  <td>{m.futam_szama || '—'}</td>
+                  <td>{m.korosztaly || '—'}</td>
+                  <td>{m.helye || '—'}</td>
+                  <td>{m.ideje || '—'}</td>
                   <td>
-                    <button
-                      onClick={() => handleExport(report.id, report.race_name)}
-                      className="btn btn-primary"
-                    >
-                      PDF exportálás
-                    </button>
+                    <div className="btn-group">
+                      <button className="btn btn-sm" onClick={() => handlePdf(m.id, m.futam_szama)}>
+                        PDF
+                      </button>
+                      <button className="btn btn-primary btn-sm" onClick={() => navigate(`/race-minutes/edit/${m.id}`)}>
+                        Szerkesztés
+                      </button>
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(m.id)}>
+                        Törlés
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
+              {minutes.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="text-center text-muted" style={{ padding: 20 }}>
+                    Nincs versenyjegyzőkönyv.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

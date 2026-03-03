@@ -28,6 +28,7 @@ app.use('/api/messages', require('./src/routes/messages'));
 app.use('/api/trainings', require('./src/routes/trainings'));
 app.use('/api/documents', require('./src/routes/documents'));
 app.use('/api/race-reports', require('./src/routes/race-reports'));
+app.use('/api/race-minutes', require('./src/routes/race-minutes'));
 app.use('/api/users', require('./src/routes/users'));
 app.use('/api/roles', require('./src/routes/roles'));
 app.use('/api/events', require('./src/routes/events'));
