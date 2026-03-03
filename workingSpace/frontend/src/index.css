@@ -501,6 +501,21 @@ table th {
   font-size: 0.85rem;
 }
 
+.role-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.role-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
 .role-assign-row {
   display: flex;
   gap: 8px;

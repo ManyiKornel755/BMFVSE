@@ -12,6 +12,8 @@ export default function Users() {
   const [editForm, setEditForm] = useState({});
   const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', phone: '', address: '' });
   const [selectedRoleId, setSelectedRoleId] = useState('');
+  const [createRoleIds, setCreateRoleIds] = useState([]);
+  const [createSelectedRoleId, setCreateSelectedRoleId] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchAll(); }, []);
@@ -31,8 +33,21 @@ export default function Users() {
 
   async function handleCreate(e) {
     e.preventDefault();
-    try { await api.post('/users', createForm); alert('Felhasználó létrehozva!'); setShowCreate(false); setCreateForm({ name: '', email: '', password: '', phone: '', address: '' }); fetchAll(); }
-    catch(err) { alert('Hiba!'); }
+    try {
+      const res = await api.post('/users', createForm);
+      const newId = res.data.user?.id || res.data.id;
+      const allRoleIds = createSelectedRoleId
+        ? [...new Set([...createRoleIds, Number(createSelectedRoleId)])]
+        : createRoleIds;
+      for (const roleId of allRoleIds) {
+        await api.post(`/roles/${roleId}/assign/${newId}`);
+      }
+      setShowCreate(false);
+      setCreateForm({ name: '', email: '', password: '', phone: '', address: '' });
+      setCreateRoleIds([]);
+      setCreateSelectedRoleId('');
+      fetchAll();
+    } catch(err) { alert('Hiba: ' + (err.response?.data?.error?.message || err.message)); }
   }
 
   async function handleEdit(e) {
@@ -49,13 +64,24 @@ export default function Users() {
 
   async function handleAddRole() {
     if (!selectedRoleId) return;
-    try { await api.post(`/roles/${selectedRoleId}/assign/${selectedUser.id}`); fetchAll(); const u = users.find(x=>x.id===selectedUser.id); setSelectedUser(u); }
-    catch(err) { alert('Hiba a szerepkör hozzáadásakor!'); }
+    try {
+      await api.post(`/roles/${selectedRoleId}/assign/${selectedUser.id}`);
+      const uRes = await api.get('/users');
+      const updated = uRes.data.find(x => x.id === selectedUser.id);
+      setUsers(uRes.data || []);
+      if (updated) setSelectedUser(updated);
+      setSelectedRoleId('');
+    } catch(err) { alert('Hiba a szerepkör hozzáadásakor!'); }
   }
 
   async function handleRemoveRole(roleId) {
-    try { await api.delete(`/roles/${roleId}/assign/${selectedUser.id}`); fetchAll(); }
-    catch(err) { alert('Hiba a szerepkör eltávolításakor!'); }
+    try {
+      await api.delete(`/roles/${roleId}/assign/${selectedUser.id}`);
+      const uRes = await api.get('/users');
+      const updated = uRes.data.find(x => x.id === selectedUser.id);
+      setUsers(uRes.data || []);
+      if (updated) setSelectedUser(updated);
+    } catch(err) { alert('Hiba a szerepkör eltávolításakor!'); }
   }
 
   if (!isAdmin()) return <div><Navbar /><div className="container"><p>Hozzáférés megtagadva.</p></div></div>;
@@ -141,6 +167,32 @@ export default function Users() {
                 <input className="form-input" value={createForm.phone} onChange={e => setCreateForm({...createForm, phone: e.target.value})} />
                 <label>Cím:</label>
                 <input className="form-input" value={createForm.address} onChange={e => setCreateForm({...createForm, address: e.target.value})} />
+                <label>Szerepkörök:</label>
+                <div className="mb-12">
+                  {createRoleIds.map(id => {
+                    const r = roles.find(x => x.id === id);
+                    return r ? (
+                      <div key={id} className="role-item">
+                        <span>{r.name}</span>
+                        <button type="button" className="btn btn-danger btn-xs" onClick={() => setCreateRoleIds(createRoleIds.filter(x => x !== id))}>X</button>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+                <div className="role-assign-row">
+                  <select className="role-select" value={createSelectedRoleId} onChange={e => setCreateSelectedRoleId(e.target.value)}>
+                    <option value="">Szerepkör választása...</option>
+                    {roles.filter(r => !createRoleIds.includes(r.id)).map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                  <button type="button" className="btn" onClick={() => {
+                    if (createSelectedRoleId) {
+                      setCreateRoleIds([...createRoleIds, Number(createSelectedRoleId)]);
+                      setCreateSelectedRoleId('');
+                    }
+                  }}>Hozzáadás</button>
+                </div>
                 <div className="btn-row">
                   <button className="btn" type="submit">Létrehozás</button>
                   <button className="btn" type="button" onClick={() => setShowCreate(false)}>Mégse</button>
