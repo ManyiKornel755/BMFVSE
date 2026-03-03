@@ -22,6 +22,7 @@ const Navbar = () => {
           {isAdmin() && <Link to="/roles">Szerepkörök</Link>}
           {(isAdmin() || isCoach()) && <Link to="/groups">Csoportok</Link>}
           {isAdmin() && <Link to="/emails">Email küldés</Link>}
+          {isAdmin() && <Link to="/iskolaigazolas">Iskolaigazolás</Link>}
         </div>
         <div className="navbar-user-section">
           <Link to="/profile">{user?.firstName} {user?.lastName}</Link>
