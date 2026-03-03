@@ -71,16 +71,20 @@ export default function Users() {
         <div className="card">
           <table className="data-table">
             <thead><tr>
-              {['Név', 'Email', 'Telefon', 'Szerepkörök'].map(h => (
+              {['Név', 'Email', 'Telefon', 'Szerepkörök', 'Műveletek'].map(h => (
                 <th key={h}>{h}</th>))}
             </tr></thead>
             <tbody>
               {users.map(u => (
-                <tr key={u.id} className="clickable" onClick={() => openUser(u)}>
+                <tr key={u.id}>
                   <td>{u.name}</td>
                   <td>{u.email}</td>
                   <td>{u.phone}</td>
                   <td>{Array.isArray(u.roles) ? u.roles.map(r => r.name || r).join(', ') : u.roles}</td>
+                  <td>
+                    <button className="btn btn-sm" onClick={() => openUser(u)}>Szerkesztés</button>
+                    <button className="btn btn-danger btn-sm" style={{marginLeft:'6px'}} onClick={() => handleDelete(u.id)}>Törlés</button>
+                  </td>
                 </tr>))}
             </tbody>
           </table>

@@ -496,6 +496,11 @@ table th {
   font-size: 0.8rem;
 }
 
+.btn-sm {
+  padding: 4px 12px;
+  font-size: 0.85rem;
+}
+
 .role-assign-row {
   display: flex;
   gap: 8px;
