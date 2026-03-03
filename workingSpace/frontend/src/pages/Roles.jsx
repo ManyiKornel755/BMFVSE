@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../utils/AuthContext';
 import api from '../services/api';
@@ -75,8 +75,9 @@ export default function Roles() {
           </table>
         </div>
         {selectedRole && (
-          <div className="modal-overlay" onClick={() => setSelectedRole(null)}>
-            <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => setSelectedRole(null)}>×</button>
               <h2>Szerepkör szerkesztése</h2>
               <form onSubmit={handleEdit}>
                 <label>Név:</label>
@@ -91,8 +92,9 @@ export default function Roles() {
             </div>
           </div>)}
         {showCreate && (
-          <div className="modal-overlay" onClick={() => setShowCreate(false)}>
-            <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => setShowCreate(false)}>×</button>
               <h2>Új szerepkör</h2>
               <form onSubmit={handleCreate}>
                 <label>Név:</label>

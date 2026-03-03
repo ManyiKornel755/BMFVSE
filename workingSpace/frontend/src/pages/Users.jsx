@@ -107,8 +107,9 @@ export default function Users() {
           </table>
         </div>
         {selectedUser && (
-          <div className="modal-overlay" onClick={() => setSelectedUser(null)}>
-            <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => setSelectedUser(null)}>×</button>
               <h2>{selectedUser.name}</h2>
               <form onSubmit={handleEdit}>
                 <label>Név:</label>
@@ -137,8 +138,9 @@ export default function Users() {
             </div>
           </div>)}
         {showCreate && (
-          <div className="modal-overlay" onClick={() => setShowCreate(false)}>
-            <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => setShowCreate(false)}>×</button>
               <h2>Új felhasználó</h2>
               <form onSubmit={handleCreate}>
                 <label>Név:</label>

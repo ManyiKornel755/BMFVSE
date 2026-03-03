@@ -68,8 +68,9 @@ export default function Dashboard() {
           </div>
         </div>
         {selectedMessage && (
-          <div className="modal-overlay" onClick={() => setSelectedMessage(null)}>
-            <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => setSelectedMessage(null)}>×</button>
               <h2>{selectedMessage.title}</h2>
               <p className="message-detail-content">{selectedMessage.content}</p>
               <small className="text-faint">{new Date(selectedMessage.created_at).toLocaleString('hu-HU')}</small><br />
@@ -77,8 +78,9 @@ export default function Dashboard() {
             </div>
           </div>)}
         {selectedTraining && (
-          <div className="modal-overlay" onClick={() => { setSelectedTraining(null); setTrainingDetail(null); }}>
-            <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => { setSelectedTraining(null); setTrainingDetail(null); }}>×</button>
               <h2>{selectedTraining.title}</h2>
               <p><strong>Időpont:</strong> {new Date(selectedTraining.event_date).toLocaleString('hu-HU', { dateStyle: 'short', timeStyle: 'short' })}</p>
               <p><strong>Helyszín:</strong> {selectedTraining.location}</p>

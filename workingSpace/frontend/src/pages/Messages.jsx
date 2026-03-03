@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../utils/AuthContext';
 import api from '../services/api';
@@ -82,8 +82,9 @@ export default function Messages() {
             </div>))}
         </div>
         {selectedMessage && (
-          <div className="modal-overlay" onClick={() => setSelectedMessage(null)}>
-            <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => setSelectedMessage(null)}>×</button>
               <h2>{selectedMessage.title}</h2>
               <p className="message-detail-content">{selectedMessage.content}</p>
               <p><small>Létrehozva: {new Date(selectedMessage.created_at).toLocaleString('hu-HU')}</small></p>
@@ -96,8 +97,9 @@ export default function Messages() {
             </div>
           </div>)}
         {showCreate && (
-          <div className="modal-overlay" onClick={() => setShowCreate(false)}>
-            <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => setShowCreate(false)}>×</button>
               <h2>Új hírlevél</h2>
               <form onSubmit={handleCreate}>
                 <label>Tárgy:</label>

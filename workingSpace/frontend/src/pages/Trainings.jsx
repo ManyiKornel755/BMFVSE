@@ -80,8 +80,9 @@ export default function Trainings() {
           })}
         </div>
         {selectedTraining && (
-          <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) { setSelectedTraining(null); setTrainingDetail(null); } }}>
+          <div className="modal-overlay">
             <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => { setSelectedTraining(null); setTrainingDetail(null); }}>×</button>
               <h2>{selectedTraining.title}</h2>
               <p><strong>Időpont:</strong> {new Date(selectedTraining.event_date).toLocaleString('hu-HU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
               <p><strong>Helyszín:</strong> {selectedTraining.location}</p>
@@ -99,8 +100,9 @@ export default function Trainings() {
             </div>
           </div>)}
         {showCreate && (
-          <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowCreate(false); }}>
+          <div className="modal-overlay">
             <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => setShowCreate(false)}>×</button>
               <h2>Új edzés létrehozása</h2>
               <form onSubmit={handleCreate}>
                 <label>Cím:</label>

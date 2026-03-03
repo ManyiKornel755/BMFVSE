@@ -216,8 +216,9 @@ const Groups = () => {
         </div>
 
         {showCreateModal && (
-          <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <button className="modal-close-btn" onClick={() => setShowCreateModal(false)}>×</button>
               <h2>Új csoport létrehozása</h2>
               <form onSubmit={handleCreateGroup}>
                 <div className="form-group">
@@ -242,8 +243,9 @@ const Groups = () => {
         )}
 
         {showEditModal && selectedGroup && (
-          <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-            <div className="modal-box modal-box-wide" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-overlay">
+            <div className="modal-box modal-box-wide">
+              <button className="modal-close-btn" onClick={() => setShowEditModal(false)}>×</button>
               <h2>Csoport szerkesztése: {selectedGroup.name}</h2>
 
               <form onSubmit={handleUpdateGroupName} className="mb-12">
