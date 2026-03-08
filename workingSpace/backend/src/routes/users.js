@@ -34,14 +34,15 @@ router.get('/me', async (req, res, next) => {
 // PATCH /api/users/me → profil szerkesztés
 router.patch('/me', async (req, res, next) => {
   try {
-    const { name, email, phone, address } = req.body;
+    const { name, email, phone, address, birth_date } = req.body;
 
     // KRITIKUS: req.user.id használata, NEM req.user.userId!
     const updatedUser = await User.update(req.user.id, {
       name,
       email,
       phone,
-      address
+      address,
+      birth_date
     });
 
     // Remove password from response
@@ -157,7 +158,7 @@ router.get('/:id', isAdmin, async (req, res, next) => {
 // POST /api/users → create new user (admin only)
 router.post('/', isAdmin, async (req, res, next) => {
   try {
-    const { name, email, password, phone, address } = req.body;
+    const { name, email, password, phone, address, birth_date, parent_name, parent_email, parent_phone, relationship } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -181,7 +182,12 @@ router.post('/', isAdmin, async (req, res, next) => {
       email,
       password,
       phone,
-      address
+      address,
+      birth_date,
+      parent_name,
+      parent_email,
+      parent_phone,
+      relationship
     });
 
     // Remove password from response
@@ -196,13 +202,18 @@ router.post('/', isAdmin, async (req, res, next) => {
 // PATCH /api/users/:id → update user (admin only)
 router.patch('/:id', isAdmin, async (req, res, next) => {
   try {
-    const { name, email, phone, address } = req.body;
+    const { name, email, phone, address, birth_date, parent_name, parent_email, parent_phone, relationship } = req.body;
 
     const updatedUser = await User.update(req.params.id, {
       name,
       email,
       phone,
-      address
+      address,
+      birth_date,
+      parent_name,
+      parent_email,
+      parent_phone,
+      relationship
     });
 
     // Remove password from response

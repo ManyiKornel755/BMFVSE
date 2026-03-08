@@ -87,10 +87,26 @@ BEGIN
         created_by INT NULL,
         created_at DATETIME2 DEFAULT GETDATE(),
         sent_at DATETIME2 NULL,
+        expires_at DATETIME2 NULL,
+        deleted_at DATETIME2 NULL,
         FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
     );
 
     CREATE INDEX idx_messages_created_at ON messages(created_at DESC);
+END
+GO
+
+-- Message_Recipients tábla (üzenet címzettek)
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'message_recipients')
+BEGIN
+    CREATE TABLE message_recipients (
+        message_id INT NOT NULL,
+        user_id INT NOT NULL,
+        read_at DATETIME2 NULL,
+        PRIMARY KEY (message_id, user_id),
+        FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
 END
 GO
 
