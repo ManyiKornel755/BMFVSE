@@ -8,6 +8,7 @@ const Navbar = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [trainingsDropdownOpen, setTrainingsDropdownOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -54,9 +55,31 @@ const Navbar = () => {
           <Link to="/" className="menu-item" onClick={closeMenu}>
             Hirdető tábla
           </Link>
-          <Link to="/trainings" className="menu-item" onClick={closeMenu}>
-            Edzések
-          </Link>
+
+          {/* Edzések lenyíló menü */}
+          <div className="menu-item-with-dropdown">
+            <div
+              className={`menu-item menu-item-dropdown ${trainingsDropdownOpen ? 'active' : ''}`}
+              onClick={() => setTrainingsDropdownOpen(!trainingsDropdownOpen)}
+            >
+              Edzések
+              <span className="dropdown-arrow">{trainingsDropdownOpen ? '▼' : '▶'}</span>
+            </div>
+            {trainingsDropdownOpen && (
+              <div className="submenu">
+                <Link to="/trainings/create" className="submenu-item" onClick={closeMenu}>
+                  Edzések létrehozása
+                </Link>
+                <Link to="/trainings/stats" className="submenu-item" onClick={closeMenu}>
+                  Statisztika
+                </Link>
+                <Link to="/trainings/log" className="submenu-item" onClick={closeMenu}>
+                  Edzésnapló
+                </Link>
+              </div>
+            )}
+          </div>
+
           {isAdmin() && (
             <Link to="/race-reports" className="menu-item" onClick={closeMenu}>
               Versenyjegyzőkönyvek
