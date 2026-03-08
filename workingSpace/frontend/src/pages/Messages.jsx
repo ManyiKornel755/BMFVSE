@@ -13,10 +13,17 @@ export default function Messages() {
   const [createForm, setCreateForm] = useState({ title: '', content: '', expires_at: '' });
   const [selectedRecipients, setSelectedRecipients] = useState([]);
   const [selectedGroups, setSelectedGroups] = useState([]);
+  const [sendToEveryone, setSendToEveryone] = useState(false);
   const [filterStatus, setFilterStatus] = useState('draft');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchAll(); }, []);
+
+  useEffect(() => {
+    if (sendToEveryone && members.length > 0) {
+      setSelectedRecipients(members.map(m => m.id));
+    }
+  }, [sendToEveryone, members]);
 
   async function fetchAll() {
     try {
@@ -44,10 +51,7 @@ export default function Messages() {
         recipients: selectedRecipients
       });
       alert('Közlemény vázlat létrehozva!');
-      setShowCreate(false);
-      setCreateForm({ title: '', content: '', expires_at: '' });
-      setSelectedRecipients([]);
-      setSelectedGroups([]);
+      closeCreateModal();
       fetchAll();
     } catch(err) { alert('Hiba a létrehozás során!'); }
   }
@@ -67,10 +71,12 @@ export default function Messages() {
   }
 
   function toggleRecipient(userId) {
+    setSendToEveryone(false);
     setSelectedRecipients(prev => prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]);
   }
 
   async function toggleGroup(groupId) {
+    setSendToEveryone(false);
     if (selectedGroups.includes(groupId)) {
       // Remove group and its members' IDs
       setSelectedGroups(prev => prev.filter(g => g !== groupId));
@@ -95,7 +101,16 @@ export default function Messages() {
   }
 
   function selectAllMembers() {
+    setSendToEveryone(false);
     setSelectedRecipients(members.map(m => m.id));
+  }
+
+  function closeCreateModal() {
+    setShowCreate(false);
+    setCreateForm({ title: '', content: '', expires_at: '' });
+    setSelectedRecipients([]);
+    setSelectedGroups([]);
+    setSendToEveryone(false);
   }
 
   function creatorLabel(msg) {
@@ -232,7 +247,7 @@ export default function Messages() {
         {showCreate && (
           <div className="modal-overlay">
             <div className="modal-box" style={{maxWidth: '900px', width: '90%'}}>
-              <button className="modal-close-btn" onClick={() => setShowCreate(false)}>×</button>
+              <button className="modal-close-btn" onClick={closeCreateModal}>×</button>
               <h2>Új közlemény</h2>
               <form onSubmit={handleCreate}>
                 <label>Tárgy:</label>
@@ -251,7 +266,39 @@ export default function Messages() {
                   Ha megadsz lejárati dátumot, az üzenet automatikusan átkerül a lejárt üzenetek közé.
                 </small>
 
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px'}}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '12px',
+                  background: '#e3f2fd',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  border: '2px solid #1976D2'
+                }}>
+                  <input
+                    type="checkbox"
+                    id="sendToEveryone"
+                    checked={sendToEveryone}
+                    onChange={(e) => setSendToEveryone(e.target.checked)}
+                    style={{marginRight: '8px', width: '20px', height: '20px', cursor: 'pointer'}}
+                  />
+                  <label htmlFor="sendToEveryone" style={{
+                    fontWeight: '600',
+                    color: '#0D47A1',
+                    fontSize: '16px',
+                    cursor: 'pointer',
+                    margin: 0
+                  }}>
+                    Küldés mindenkinek (összes tag)
+                  </label>
+                  {sendToEveryone && (
+                    <span style={{marginLeft: 'auto', color: '#1976D2', fontWeight: '500'}}>
+                      ✓ {members.length} tag kiválasztva
+                    </span>
+                  )}
+                </div>
+
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px', opacity: sendToEveryone ? 0.5 : 1, pointerEvents: sendToEveryone ? 'none' : 'auto'}}>
                   <div>
                     <label style={{fontWeight: '600', color: '#1976D2', marginBottom: '8px', display: 'block'}}>
                       Csoportok
@@ -292,7 +339,7 @@ export default function Messages() {
 
                 <div className="btn-row" style={{marginTop: '16px'}}>
                   <button className="btn" type="submit">Létrehozás (vázlat)</button>
-                  <button className="btn" type="button" onClick={() => setShowCreate(false)}>Mégse</button>
+                  <button className="btn" type="button" onClick={closeCreateModal}>Mégse</button>
                 </div>
               </form>
             </div>
