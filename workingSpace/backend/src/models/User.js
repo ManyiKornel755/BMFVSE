@@ -18,29 +18,55 @@ class User {
     return result.recordset[0] || null;
   }
 
-  static async create({ name, email, password, phone = null, address = null }) {
+  static async create({ name, email, password, phone = null, address = null, birth_date = null, parent_name = null, parent_email = null, parent_phone = null, relationship = null }) {
     const hash = await bcrypt.hash(password, 10);
+
+    // Split name into first_name and last_name
+    const nameParts = (name || '').trim().split(' ');
+    const first_name = nameParts[0] || '';
+    const last_name = nameParts.slice(1).join(' ') || '';
+
     const pool = await poolPromise;
     const result = await pool.request()
-      .input('name', sql.NVarChar, name)
+      .input('first_name', sql.NVarChar, first_name)
+      .input('last_name', sql.NVarChar, last_name)
       .input('email', sql.NVarChar, email)
       .input('password', sql.NVarChar, hash)
       .input('phone', sql.NVarChar, phone)
       .input('address', sql.NVarChar, address)
-      .query('INSERT INTO users (name, email, password, phone, address) OUTPUT INSERTED.id VALUES (@name, @email, @password, @phone, @address)');
+      .input('birth_date', sql.Date, birth_date)
+      .input('parent_name', sql.NVarChar, parent_name)
+      .input('parent_email', sql.NVarChar, parent_email)
+      .input('parent_phone', sql.NVarChar, parent_phone)
+      .input('relationship', sql.NVarChar, relationship)
+      .query('INSERT INTO users (first_name, last_name, email, password, phone, address, birth_date, parent_name, parent_email, parent_phone, relationship) OUTPUT INSERTED.id VALUES (@first_name, @last_name, @email, @password, @phone, @address, @birth_date, @parent_name, @parent_email, @parent_phone, @relationship)');
     return this.findById(result.recordset[0].id);
   }
 
   static async update(id, data) {
-    const allowed = ['name', 'email', 'phone', 'address'];
+    const allowed = ['email', 'phone', 'address', 'birth_date', 'parent_name', 'parent_email', 'parent_phone', 'relationship'];
     const fields = [];
     const pool = await poolPromise;
     const request = pool.request().input('id', sql.Int, id);
 
+    // Handle name field - split into first_name and last_name
+    if (data.name !== undefined) {
+      const nameParts = (data.name || '').trim().split(' ');
+      const first_name = nameParts[0] || '';
+      const last_name = nameParts.slice(1).join(' ') || '';
+      fields.push('first_name = @first_name', 'last_name = @last_name');
+      request.input('first_name', sql.NVarChar, first_name);
+      request.input('last_name', sql.NVarChar, last_name);
+    }
+
     allowed.forEach(key => {
       if (data[key] !== undefined) {
         fields.push(`${key} = @${key}`);
-        request.input(key, sql.NVarChar, data[key]);
+        if (key === 'birth_date') {
+          request.input(key, sql.Date, data[key]);
+        } else {
+          request.input(key, sql.NVarChar, data[key]);
+        }
       }
     });
 
