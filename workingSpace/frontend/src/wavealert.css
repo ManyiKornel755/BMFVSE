@@ -257,7 +257,7 @@ body {
 /* Címek és fejlécek fehér színnel */
 .main-content h1:not(.card h1):not(.modal-box h1):not(.dashboard-card h1),
 .main-content h2:not(.form-panel h2):not(.info-card h3):not(.card h2):not(.modal-box h2):not(.dashboard-card h2),
-.main-content h3:not(.info-card h3):not(.card h3):not(.modal-box h3):not(.dashboard-card h3),
+.main-content h3:not(.info-card h3):not(.card h3):not(.modal-box h3):not(.dashboard-card h3):not(.bottom-card h3),
 .container > h1:not(.card h1),
 .page-header h1 {
     color: white !important;
@@ -1168,4 +1168,404 @@ body {
     background: rgba(220, 53, 69, 0.1);
     padding: 10px;
     border-radius: 8px;
+}
+
+/* ===== NEW USER CREATION MODAL ===== */
+.user-create-modal {
+    background: white;
+    border-radius: 16px;
+    width: 700px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(13, 71, 161, 0.3);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Gradient Header */
+.user-create-header {
+    background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%);
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    position: relative;
+}
+
+.user-create-header h2 {
+    color: white;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modal-close-btn-new {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 32px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    line-height: 1;
+    padding: 0;
+}
+
+.modal-close-btn-new:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+/* Tab Navigation */
+.user-create-tabs {
+    display: flex;
+    background: #f5f5f5;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.user-tab {
+    flex: 1;
+    padding: 16px 24px;
+    background: transparent;
+    border: none;
+    font-size: 15px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.user-tab:hover:not(.disabled) {
+    background: rgba(25, 118, 210, 0.05);
+    color: #1976D2;
+}
+
+.user-tab.active {
+    background: white;
+    color: #1976D2;
+    font-weight: 600;
+}
+
+.user-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #1976D2, #42A5F5);
+}
+
+.user-tab.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.required-badge {
+    background: #ff5252;
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Form Content */
+.user-create-form {
+    max-height: calc(90vh - 88px - 56px - 72px);
+    overflow-y: auto;
+}
+
+.tab-content {
+    padding: 32px;
+    animation: fadeInContent 0.3s ease;
+}
+
+@keyframes fadeInContent {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Form Groups */
+.form-row {
+    margin-bottom: 24px;
+}
+
+.form-row-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label-new {
+    color: #0D47A1 !important;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.required-star {
+    color: #ff5252;
+    font-size: 16px;
+}
+
+.form-input-new, .form-select-new {
+    height: 44px;
+    padding: 0 16px;
+    border: 2px solid #e3f2fd;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #333;
+    background: #fafafa;
+    transition: all 0.2s ease;
+}
+
+.form-input-new:focus, .form-select-new:focus {
+    outline: none;
+    border-color: #42A5F5;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(66, 165, 245, 0.1);
+}
+
+.form-input-new::placeholder {
+    color: #bdbdbd;
+}
+
+/* Age Display */
+.age-display {
+    height: 44px;
+    padding: 0 16px;
+    border: 2px solid #e3f2fd;
+    border-radius: 10px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+}
+
+.age-value {
+    color: #1976D2;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.age-placeholder {
+    color: #bdbdbd;
+    font-size: 16px;
+}
+
+/* Warning Box */
+.warning-box {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border-left: 4px solid #ff9800;
+    padding: 16px;
+    border-radius: 10px;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.15);
+}
+
+.warning-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.warning-text {
+    color: #e65100;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.warning-text strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 15px;
+}
+
+/* Info Box */
+.info-box {
+    background: #e3f2fd;
+    border-left: 4px solid #1976D2;
+    padding: 16px;
+    border-radius: 10px;
+    margin-top: 16px;
+}
+
+.info-box p {
+    color: #0D47A1;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Parent Form Section */
+.parent-type-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #f5f5f5;
+    border-radius: 12px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.radio-label:hover {
+    border-color: #42A5F5;
+    background: #fafafa;
+}
+
+.radio-label input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #1976D2;
+}
+
+.radio-label span {
+    font-size: 15px;
+    color: #333;
+    font-weight: 500;
+}
+
+.radio-label input[type="radio"]:checked + span {
+    color: #1976D2;
+    font-weight: 600;
+}
+
+.parent-form-section {
+    padding-top: 8px;
+    animation: fadeInContent 0.3s ease;
+}
+
+/* Footer */
+.user-create-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 32px;
+    background: #f5f5f5;
+    border-top: 1px solid #e0e0e0;
+}
+
+.btn-cancel-new {
+    padding: 12px 32px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    color: #666;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel-new:hover {
+    border-color: #bdbdbd;
+    background: #fafafa;
+    color: #333;
+}
+
+.btn-save-new {
+    padding: 12px 32px;
+    background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.btn-save-new:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
+}
+
+.btn-save-new:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .user-create-modal {
+        width: 100%;
+        max-width: 100vw;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .user-create-header {
+        padding: 0 20px;
+        height: 72px;
+    }
+
+    .user-create-header h2 {
+        font-size: 20px;
+    }
+
+    .tab-content {
+        padding: 20px;
+    }
+
+    .form-row-split {
+        grid-template-columns: 1fr;
+    }
+
+    .user-create-footer {
+        padding: 16px 20px;
+    }
 }
