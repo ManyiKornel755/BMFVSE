@@ -35,12 +35,12 @@ code {
   margin-bottom: 24px;
 }
 
-.main-content h1:not(.card h1):not(.modal-box h1):not(.form-panel h1) {
+.main-content h1:not(.card h1):not(.modal-box h1):not(.form-panel h1):not(.user-create-modal h1) {
   color: white !important;
   font-size: 2rem;
 }
 
-.main-content label:not(.form-panel label):not(.card label) {
+.main-content label:not(.form-panel label):not(.card label):not(.user-create-modal label):not(.modal-box label) {
   color: white !important;
 }
 
@@ -49,8 +49,11 @@ code {
 .card h3,
 .modal-box h2,
 .modal-box h3,
+.user-create-modal h2,
+.user-create-modal h3,
 .card label,
-.modal-box label {
+.modal-box label,
+.user-create-modal label {
   color: #1976D2 !important;
 }
 

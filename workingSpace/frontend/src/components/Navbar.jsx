@@ -26,6 +26,12 @@ const Navbar = () => {
     setProfileDropdownOpen(!profileDropdownOpen);
   };
 
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `http://localhost:5000${url}`;
+  };
+
   return (
     <>
       {/* Menu Overlay */}
@@ -57,7 +63,7 @@ const Navbar = () => {
             </Link>
           )}
           <Link to="/messages" className="menu-item" onClick={closeMenu}>
-            Üzenetek
+            Közlemények
           </Link>
           {isAdmin() && (
             <Link to="/users" className="menu-item" onClick={closeMenu}>
@@ -113,9 +119,23 @@ const Navbar = () => {
                 className="profile-button hide-indicator"
                 onClick={toggleProfileDropdown}
               >
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                </svg>
+                {user?.profile_image ? (
+                  <img
+                    src={getImageUrl(user.profile_image)}
+                    alt="Profil"
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      marginRight: '8px'
+                    }}
+                  />
+                ) : (
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                )}
                 <span>Profil</span>
               </button>
 
@@ -124,13 +144,44 @@ const Navbar = () => {
             <div style={{
               padding: '12px',
               borderBottom: '1px solid rgba(13, 71, 161, 0.1)',
-              marginBottom: '8px'
+              marginBottom: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
             }}>
-              <div style={{fontWeight: 600, color: '#0D47A1'}}>
-                {user?.firstName} {user?.lastName}
-              </div>
-              <div style={{fontSize: '12px', color: '#1976D2', marginTop: '4px'}}>
-                {user?.email}
+              {user?.profile_image ? (
+                <img
+                  src={getImageUrl(user.profile_image)}
+                  alt="Profil"
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    objectFit: 'cover'
+                  }}
+                />
+              ) : (
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #1976D2, #42A5F5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style={{width: '28px', height: '28px', fill: 'white'}}>
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                </div>
+              )}
+              <div>
+                <div style={{fontWeight: 600, color: '#0D47A1'}}>
+                  {user?.firstName} {user?.lastName}
+                </div>
+                <div style={{fontSize: '12px', color: '#1976D2', marginTop: '4px'}}>
+                  {user?.email}
+                </div>
               </div>
             </div>
             <Link

@@ -115,7 +115,7 @@ export default function Profile() {
   function getImageUrl(url) {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `http://localhost:3000${url}`;
+    return `http://localhost:5000${url}`;
   }
 
   return (
@@ -395,7 +395,7 @@ export default function Profile() {
                 <div className="form-group">
                   <label style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
                     <input type="checkbox" />
-                    <span>Hírlévél feliratkozás</span>
+                    <span>Közlemények feliratkozás</span>
                   </label>
                 </div>
               </div>

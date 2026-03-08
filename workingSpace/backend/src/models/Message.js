@@ -58,7 +58,7 @@ class Message {
     return result.recordset[0] || null;
   }
 
-  static async create({ title, content, status = 'draft', created_by = null, expires_at = null }) {
+  static async create({ title, content, status = 'draft', created_by = null, expires_at = null, recipients = [] }) {
     const pool = await poolPromise;
     const result = await pool.request()
       .input('title', sql.NVarChar, title)
@@ -67,7 +67,20 @@ class Message {
       .input('created_by', sql.Int, created_by)
       .input('expires_at', sql.DateTime, expires_at)
       .query('INSERT INTO messages (title, content, status, created_by, expires_at) OUTPUT INSERTED.id VALUES (@title, @content, @status, @created_by, @expires_at)');
-    return this.findById(result.recordset[0].id);
+
+    const messageId = result.recordset[0].id;
+
+    // Add recipients
+    if (recipients && recipients.length > 0) {
+      for (const userId of recipients) {
+        await pool.request()
+          .input('message_id', sql.Int, messageId)
+          .input('user_id', sql.Int, userId)
+          .query('INSERT INTO message_recipients (message_id, user_id) VALUES (@message_id, @user_id)');
+      }
+    }
+
+    return this.findById(messageId);
   }
 
   static async update(id, data) {
@@ -100,6 +113,19 @@ class Message {
       .input('id', sql.Int, id)
       .query("UPDATE messages SET status = 'sent', sent_at = GETDATE() WHERE id = @id");
     return this.findById(id);
+  }
+
+  static async getRecipients(messageId) {
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('message_id', sql.Int, messageId)
+      .query(`
+        SELECT u.id, u.name, u.email
+        FROM message_recipients mr
+        JOIN users u ON mr.user_id = u.id
+        WHERE mr.message_id = @message_id
+      `);
+    return result.recordset;
   }
 }
 

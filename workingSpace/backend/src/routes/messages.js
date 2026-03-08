@@ -45,14 +45,15 @@ router.post('/',
         return res.status(400).json({ error: { message: 'Validation failed', details: errors.array() } });
       }
 
-      const { title, content, status, expires_at } = req.body;
+      const { title, content, status, expires_at, recipients } = req.body;
 
       const newMessage = await Message.create({
         title,
         content,
         status: status || 'draft',
         created_by: req.user.id,
-        expires_at: expires_at || null
+        expires_at: expires_at || null,
+        recipients: recipients || []
       });
 
       res.status(201).json(newMessage);
@@ -70,8 +71,23 @@ router.post('/:id/send', authenticate, authorize('admin'), async (req, res, next
       return res.status(404).json({ error: { message: 'Message not found' } });
     }
 
-    const users = await User.getAll();
-    const recipients = users.map(u => u.email);
+    // Get recipients for this message from message_recipients table
+    const { sql, poolPromise } = require('../config/database');
+    const pool = await poolPromise;
+    const recipientsResult = await pool.request()
+      .input('message_id', sql.Int, req.params.id)
+      .query(`
+        SELECT u.email
+        FROM message_recipients mr
+        JOIN users u ON mr.user_id = u.id
+        WHERE mr.message_id = @message_id
+      `);
+
+    const recipients = recipientsResult.recordset.map(r => r.email);
+
+    if (recipients.length === 0) {
+      return res.status(400).json({ error: { message: 'No recipients for this message' } });
+    }
 
     const emailResult = await EmailService.sendBulkEmail(
       recipients,
