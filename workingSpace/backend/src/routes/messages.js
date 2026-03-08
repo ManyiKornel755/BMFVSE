@@ -31,8 +31,8 @@ router.get('/:id', authenticate, async (req, res, next) => {
 });
 
 // POST /api/messages (admin only)
-router.post('/', 
-  authenticate, 
+router.post('/',
+  authenticate,
   authorize('admin'),
   [
     body('title').notEmpty().withMessage('Title is required'),
@@ -45,13 +45,14 @@ router.post('/',
         return res.status(400).json({ error: { message: 'Validation failed', details: errors.array() } });
       }
 
-      const { title, content, status } = req.body;
+      const { title, content, status, expires_at } = req.body;
 
       const newMessage = await Message.create({
         title,
         content,
         status: status || 'draft',
-        created_by: req.user.id
+        created_by: req.user.id,
+        expires_at: expires_at || null
       });
 
       res.status(201).json(newMessage);
@@ -93,12 +94,13 @@ router.post('/:id/send', authenticate, authorize('admin'), async (req, res, next
 // PATCH /api/messages/:id (admin only)
 router.patch('/:id', authenticate, authorize('admin'), async (req, res, next) => {
   try {
-    const { title, content, status } = req.body;
+    const { title, content, status, expires_at } = req.body;
 
     const updatedMessage = await Message.update(req.params.id, {
       title,
       content,
-      status
+      status,
+      expires_at
     });
 
     if (!updatedMessage) {

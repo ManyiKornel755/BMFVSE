@@ -9,7 +9,7 @@ export default function Messages() {
   const [members, setMembers] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [createForm, setCreateForm] = useState({ title: '', content: '' });
+  const [createForm, setCreateForm] = useState({ title: '', content: '', expires_at: '' });
   const [selectedRecipients, setSelectedRecipients] = useState([]);
   const [filterStatus, setFilterStatus] = useState('draft');
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,7 @@ export default function Messages() {
       await api.post('/messages', { ...createForm, status: 'draft' });
       alert('Hírlevél vázlat létrehozva!');
       setShowCreate(false);
-      setCreateForm({ title: '', content: '' });
+      setCreateForm({ title: '', content: '', expires_at: '' });
       setSelectedRecipients([]);
       fetchAll();
     } catch(err) { alert('Hiba a létrehozás során!'); }
@@ -59,25 +59,35 @@ export default function Messages() {
     return msg.creator_name;
   }
 
-  const draftMessages = messages.filter(m => m.status === 'draft');
-  const sentMessages = messages.filter(m => m.status === 'sent');
+  const draftMessages = messages.filter(m => m.status === 'draft' && !m.deleted_at);
 
-  // Lejárt üzenetek: 30 napnál régebbi elküldött üzenetek
-  const expiredMessages = sentMessages.filter(m => {
-    if (!m.sent_at) return false;
-    const sentDate = new Date(m.sent_at);
-    const now = new Date();
-    const daysDiff = (now - sentDate) / (1000 * 60 * 60 * 24);
-    return daysDiff > 30;
+  // Lejárt üzenetek: törölt vagy lejárt üzenetek
+  const expiredMessages = messages.filter(m => {
+    // Ha törölve van, akkor lejárt
+    if (m.deleted_at) return true;
+
+    // Ha van expires_at és már lejárt
+    if (m.expires_at) {
+      const expiryDate = new Date(m.expires_at);
+      const now = new Date();
+      return expiryDate <= now;
+    }
+
+    return false;
   });
 
-  // Aktív üzenetek: 30 napnál újabb elküldött üzenetek
-  const activeMessages = sentMessages.filter(m => {
-    if (!m.sent_at) return true;
-    const sentDate = new Date(m.sent_at);
-    const now = new Date();
-    const daysDiff = (now - sentDate) / (1000 * 60 * 60 * 24);
-    return daysDiff <= 30;
+  // Aktív üzenetek: nem törölt és nem lejárt elküldött üzenetek
+  const activeMessages = messages.filter(m => {
+    if (m.status !== 'sent') return false;
+    if (m.deleted_at) return false;
+
+    if (m.expires_at) {
+      const expiryDate = new Date(m.expires_at);
+      const now = new Date();
+      return expiryDate > now;
+    }
+
+    return true;
   });
 
   let displayedMessages = [];
@@ -120,9 +130,20 @@ export default function Messages() {
                 <strong>{msg.title}</strong>
                 <p>{msg.content ? msg.content.substring(0, 100) + '...' : ''}</p>
                 <div className="message-item-meta">
-                  <span className={`badge badge-sm badge-${msg.status}`}>
-                    {msg.status === 'sent' ? 'Elküldve' : 'Vázlat'}
-                  </span>
+                  {msg.deleted_at ? (
+                    <span className="badge badge-sm badge-danger">Törölve</span>
+                  ) : msg.expires_at && new Date(msg.expires_at) <= new Date() ? (
+                    <span className="badge badge-sm badge-danger">Lejárt</span>
+                  ) : (
+                    <span className={`badge badge-sm badge-${msg.status}`}>
+                      {msg.status === 'sent' ? 'Elküldve' : 'Vázlat'}
+                    </span>
+                  )}
+                  {msg.expires_at && new Date(msg.expires_at) > new Date() && !msg.deleted_at && (
+                    <span className="badge badge-sm badge-warning" style={{background: '#ffa726'}}>
+                      Lejár: {new Date(msg.expires_at).toLocaleDateString('hu-HU')}
+                    </span>
+                  )}
                   <small className="text-faint">
                     Létrehozta: {creatorLabel(msg)} · {new Date(msg.created_at).toLocaleDateString('hu-HU')}
                   </small>
@@ -144,9 +165,21 @@ export default function Messages() {
               <p><small>Létrehozta: <strong>{creatorLabel(selectedMessage)}</strong></small></p>
               <p><small>Létrehozva: {new Date(selectedMessage.created_at).toLocaleString('hu-HU')}</small></p>
               {selectedMessage.sent_at && <p><small>Elküldve: {new Date(selectedMessage.sent_at).toLocaleString('hu-HU')}</small></p>}
-              <span className={`badge badge-sm badge-${selectedMessage.status}`}>
-                {selectedMessage.status === 'sent' ? 'Elküldve' : 'Vázlat'}
-              </span>
+              {selectedMessage.expires_at && (
+                <p><small>Lejár: {new Date(selectedMessage.expires_at).toLocaleString('hu-HU')}</small></p>
+              )}
+              {selectedMessage.deleted_at && (
+                <p><small style={{color: '#dc3545'}}>Törölve: {new Date(selectedMessage.deleted_at).toLocaleString('hu-HU')}</small></p>
+              )}
+              {selectedMessage.deleted_at ? (
+                <span className="badge badge-sm badge-danger">Törölve</span>
+              ) : selectedMessage.expires_at && new Date(selectedMessage.expires_at) <= new Date() ? (
+                <span className="badge badge-sm badge-danger">Lejárt</span>
+              ) : (
+                <span className={`badge badge-sm badge-${selectedMessage.status}`}>
+                  {selectedMessage.status === 'sent' ? 'Elküldve' : 'Vázlat'}
+                </span>
+              )}
               <br />
               <button className="btn mt-16" onClick={() => setSelectedMessage(null)}>Bezárás</button>
             </div>
@@ -161,6 +194,17 @@ export default function Messages() {
                 <input className="form-input" value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} required />
                 <label>Tartalom:</label>
                 <textarea className="form-input" rows={5} value={createForm.content} onChange={e => setCreateForm({...createForm, content: e.target.value})} required />
+                <label>Lejárati dátum (opcionális):</label>
+                <input
+                  className="form-input"
+                  type="datetime-local"
+                  value={createForm.expires_at}
+                  onChange={e => setCreateForm({...createForm, expires_at: e.target.value})}
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+                <small style={{display: 'block', marginBottom: '12px', color: '#666'}}>
+                  Ha megadsz lejárati dátumot, az üzenet automatikusan átkerül a lejárt üzenetek közé.
+                </small>
                 <label>Címzettek:</label>
                 <div className="recipients-scroll">
                   {members.map(m => (
