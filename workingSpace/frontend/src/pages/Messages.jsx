@@ -7,10 +7,12 @@ export default function Messages() {
   const { isAdmin } = useAuth();
   const [messages, setMessages] = useState([]);
   const [members, setMembers] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({ title: '', content: '', expires_at: '' });
   const [selectedRecipients, setSelectedRecipients] = useState([]);
+  const [selectedGroups, setSelectedGroups] = useState([]);
   const [filterStatus, setFilterStatus] = useState('draft');
   const [loading, setLoading] = useState(true);
 
@@ -18,19 +20,34 @@ export default function Messages() {
 
   async function fetchAll() {
     try {
-      const [mRes, membRes] = await Promise.all([api.get('/messages'), api.get('/members')]);
-      setMessages(mRes.data || []); setMembers(membRes.data || []);
+      const [mRes, membRes, grpRes] = await Promise.all([
+        api.get('/messages'),
+        api.get('/members'),
+        api.get('/groups')
+      ]);
+      setMessages(mRes.data || []);
+      setMembers(membRes.data || []);
+      setGroups(grpRes.data || []);
     } catch(err) { console.error(err); } finally { setLoading(false); }
   }
 
   async function handleCreate(e) {
     e.preventDefault();
+    if (selectedRecipients.length === 0) {
+      alert('Válassz ki legalább egy címzettet!');
+      return;
+    }
     try {
-      await api.post('/messages', { ...createForm, status: 'draft' });
-      alert('Hírlevél vázlat létrehozva!');
+      await api.post('/messages', {
+        ...createForm,
+        status: 'draft',
+        recipients: selectedRecipients
+      });
+      alert('Közlemény vázlat létrehozva!');
       setShowCreate(false);
       setCreateForm({ title: '', content: '', expires_at: '' });
       setSelectedRecipients([]);
+      setSelectedGroups([]);
       fetchAll();
     } catch(err) { alert('Hiba a létrehozás során!'); }
   }
@@ -38,7 +55,7 @@ export default function Messages() {
   async function handleSend(msg) {
     try {
       await api.post(`/messages/${msg.id}/send`);
-      alert('Hírlevél elküldve!');
+      alert('Közlemény elküldve!');
       fetchAll();
     } catch(err) { alert('Hiba a küldés során!'); }
   }
@@ -49,8 +66,36 @@ export default function Messages() {
     catch(err) { alert('Hiba!'); }
   }
 
-  function toggleRecipient(email) {
-    setSelectedRecipients(prev => prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]);
+  function toggleRecipient(userId) {
+    setSelectedRecipients(prev => prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]);
+  }
+
+  async function toggleGroup(groupId) {
+    if (selectedGroups.includes(groupId)) {
+      // Remove group and its members' IDs
+      setSelectedGroups(prev => prev.filter(g => g !== groupId));
+      try {
+        const res = await api.get(`/groups/${groupId}/members`);
+        const groupUserIds = res.data.map(m => m.id);
+        setSelectedRecipients(prev => prev.filter(id => !groupUserIds.includes(id)));
+      } catch(err) {
+        console.error('Error removing group members:', err);
+      }
+    } else {
+      // Add group and its members' IDs
+      setSelectedGroups(prev => [...prev, groupId]);
+      try {
+        const res = await api.get(`/groups/${groupId}/members`);
+        const groupUserIds = res.data.map(m => m.id);
+        setSelectedRecipients(prev => [...new Set([...prev, ...groupUserIds])]);
+      } catch(err) {
+        console.error('Error adding group members:', err);
+      }
+    }
+  }
+
+  function selectAllMembers() {
+    setSelectedRecipients(members.map(m => m.id));
   }
 
   function creatorLabel(msg) {
@@ -99,7 +144,7 @@ export default function Messages() {
     <div className="main-content"><Navbar />
       <div className="container">
         <div className="page-header">
-          <h1>Hírlevelek</h1>
+          <h1>Közlemények</h1>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             {isAdmin() && (
               <select
@@ -186,9 +231,9 @@ export default function Messages() {
           </div>)}
         {showCreate && (
           <div className="modal-overlay">
-            <div className="modal-box">
+            <div className="modal-box" style={{maxWidth: '900px', width: '90%'}}>
               <button className="modal-close-btn" onClick={() => setShowCreate(false)}>×</button>
-              <h2>Új hírlevél</h2>
+              <h2>Új közlemény</h2>
               <form onSubmit={handleCreate}>
                 <label>Tárgy:</label>
                 <input className="form-input" value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} required />
@@ -205,15 +250,47 @@ export default function Messages() {
                 <small style={{display: 'block', marginBottom: '12px', color: '#666'}}>
                   Ha megadsz lejárati dátumot, az üzenet automatikusan átkerül a lejárt üzenetek közé.
                 </small>
-                <label>Címzettek:</label>
-                <div className="recipients-scroll">
-                  {members.map(m => (
-                    <label key={m.id} className="recipient-label">
-                      <input type="checkbox" checked={selectedRecipients.includes(m.email)} onChange={() => toggleRecipient(m.email)} />
-                      {m.first_name} {m.last_name} ({m.email})
-                    </label>))}
+
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px'}}>
+                  <div>
+                    <label style={{fontWeight: '600', color: '#1976D2', marginBottom: '8px', display: 'block'}}>
+                      Csoportok
+                    </label>
+                    <div className="recipients-scroll" style={{maxHeight: '200px', overflow: 'auto', border: '1px solid #ddd', borderRadius: '4px', padding: '8px'}}>
+                      {groups.map(g => (
+                        <label key={g.id} className="recipient-label" style={{display: 'flex', alignItems: 'center', padding: '4px', cursor: 'pointer'}}>
+                          <input type="checkbox" checked={selectedGroups.includes(g.id)} onChange={() => toggleGroup(g.id)} style={{marginRight: '8px'}} />
+                          <span>{g.name} ({g.member_count || 0} tag)</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                      <label style={{fontWeight: '600', color: '#1976D2'}}>
+                        Tagok
+                      </label>
+                      <button type="button" onClick={selectAllMembers} className="btn" style={{padding: '4px 8px', fontSize: '12px'}}>
+                        Összes kijelölése
+                      </button>
+                    </div>
+                    <div className="recipients-scroll" style={{maxHeight: '200px', overflow: 'auto', border: '1px solid #ddd', borderRadius: '4px', padding: '8px'}}>
+                      {members.map(m => (
+                        <label key={m.id} className="recipient-label" style={{display: 'flex', alignItems: 'center', padding: '4px', cursor: 'pointer'}}>
+                          <input type="checkbox" checked={selectedRecipients.includes(m.id)} onChange={() => toggleRecipient(m.id)} style={{marginRight: '8px'}} />
+                          <span>{m.first_name} {m.last_name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="btn-row">
+
+                <div style={{marginTop: '12px', padding: '8px', background: '#f5f5f5', borderRadius: '4px'}}>
+                  <strong>Kijelölt címzettek: {selectedRecipients.length}</strong>
+                </div>
+
+                <div className="btn-row" style={{marginTop: '16px'}}>
                   <button className="btn" type="submit">Létrehozás (vázlat)</button>
                   <button className="btn" type="button" onClick={() => setShowCreate(false)}>Mégse</button>
                 </div>
