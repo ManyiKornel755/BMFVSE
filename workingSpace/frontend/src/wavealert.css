@@ -50,6 +50,7 @@ body {
         opacity: 0;
         transform: translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -256,6 +257,7 @@ body {
         opacity: 0;
         transform: translateY(-8px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -319,7 +321,7 @@ body {
 .main-content h1:not(.card h1):not(.modal-box h1):not(.dashboard-card h1),
 .main-content h2:not(.form-panel h2):not(.info-card h3):not(.card h2):not(.modal-box h2):not(.dashboard-card h2),
 .main-content h3:not(.info-card h3):not(.card h3):not(.modal-box h3):not(.dashboard-card h3):not(.bottom-card h3),
-.container > h1:not(.card h1),
+.container>h1:not(.card h1),
 .page-header h1 {
     color: white !important;
     font-size: 2rem;
@@ -327,7 +329,7 @@ body {
 }
 
 /* Nagyobb távolság címek és kártyák között */
-.container > h1 {
+.container>h1 {
     margin-bottom: 32px;
 }
 
@@ -715,7 +717,7 @@ body {
 }
 
 /* Settings tab - larger gap between cards */
-.tab-pane .info-card + .info-card {
+.tab-pane .info-card+.info-card {
     margin-top: 24px;
 }
 
@@ -1248,6 +1250,7 @@ body {
         opacity: 0;
         transform: translateY(40px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1372,6 +1375,7 @@ body {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1410,7 +1414,8 @@ body {
     font-size: 16px;
 }
 
-.form-input-new, .form-select-new {
+.form-input-new,
+.form-select-new {
     height: 44px;
     padding: 0 16px;
     border: 2px solid #e3f2fd;
@@ -1421,7 +1426,8 @@ body {
     transition: all 0.2s ease;
 }
 
-.form-input-new:focus, .form-select-new:focus {
+.form-input-new:focus,
+.form-select-new:focus {
     outline: none;
     border-color: #42A5F5;
     background: white;
@@ -1540,7 +1546,7 @@ body {
     font-weight: 500;
 }
 
-.radio-label input[type="radio"]:checked + span {
+.radio-label input[type="radio"]:checked+span {
     color: #1976D2;
     font-weight: 600;
 }
