@@ -395,7 +395,7 @@ ${createForm.issuerPosition}
               <button className="modal-close-btn" onClick={() => setShowCreateModal(false)}>×</button>
 
               {/* Organization Header */}
-              <div style={{ textAlign: 'center', marginBottom: '24px', padding: '20px', background: 'linear-gradient(135deg, #1E88E5 0%, #1565C0 100%)', borderRadius: '12px', color: 'white' }}>
+              <div className="blue-header" style={{ textAlign: 'center', marginBottom: '24px', padding: '20px', background: 'linear-gradient(135deg, #1E88E5 0%, #1565C0 100%)', borderRadius: '12px', color: 'white' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '12px' }}>
                   <div style={{ width: '80px', height: '80px', background: 'rgba(255,255,255,0.2)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed rgba(255,255,255,0.5)' }}>
                     {logoPreview ? (

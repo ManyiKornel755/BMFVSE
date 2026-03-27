@@ -1636,3 +1636,11 @@ body {
         padding: 16px 20px;
     }
 }
+
+/* Kék hátterű szekciók - h1/h2/h3 fehér legyen */
+.blue-header h1,
+.blue-header h2,
+.blue-header h3 {
+    color: white !important;
+}
+}

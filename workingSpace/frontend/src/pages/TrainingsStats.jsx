@@ -102,7 +102,7 @@ export default function TrainingsStats() {
               {!statsLoading && userStats && (
                 <div>
                   {/* Felhasználó fejléc */}
-                  <div style={{
+                  <div className="blue-header" style={{
                     background: 'linear-gradient(135deg, #1E88E5 0%, #1565C0 100%)',
                     padding: '24px',
                     borderRadius: '12px',
