@@ -15,27 +15,32 @@ export default function Profile() {
   const [certificates, setCertificates] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
 
   useEffect(() => { fetchProfile(); }, []);
 
   async function fetchProfile() {
     try {
-      const [profileRes, certsRes] = await Promise.all([
-        api.get('/users/me'),
-        api.get('/certificates/my')
-      ]);
-      setProfile(profileRes.data);
-      setCertificates(certsRes.data || []);
+      const profileRes = await api.get('/users/me');
+      const data = profileRes.data;
+      setProfile(data);
       setEditForm({
-        name: profileRes.data.name || '',
-        email: profileRes.data.email || '',
-        phone: profileRes.data.phone || '',
-        address: profileRes.data.address || ''
+        name: data.name || `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+        email: data.email || '',
+        phone: data.phone || '',
+        address: data.address || ''
       });
     } catch(err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+
+    try {
+      const certsRes = await api.get('/certificates/my');
+      setCertificates(certsRes.data || []);
+    } catch(err) {
+      console.error('Certificates:', err);
     }
   }
 
@@ -306,33 +311,57 @@ export default function Profile() {
                 <form onSubmit={handlePasswordChange}>
                   <div className="form-group">
                     <label>Jelenlegi jelszó</label>
-                    <input
-                      className="form-input"
-                      type="password"
-                      value={pwForm.currentPassword}
-                      onChange={e => setPwForm({...pwForm, currentPassword: e.target.value})}
-                      required
-                    />
+                    <div style={{position: 'relative'}}>
+                      <input
+                        className="form-input"
+                        type={showPw.current ? 'text' : 'password'}
+                        value={pwForm.currentPassword}
+                        onChange={e => setPwForm({...pwForm, currentPassword: e.target.value})}
+                        style={{paddingRight: '40px'}}
+                        required
+                      />
+                      <button type="button" onClick={() => setShowPw(p => ({...p, current: !p.current}))} style={{position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#666'}}>
+                        {showPw.current
+                          ? <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75C21.27 7.61 17 4.5 12 4.5c-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zm7.53 5.53 1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78 3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+                          : <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>}
+                      </button>
+                    </div>
                   </div>
                   <div className="form-group">
                     <label>Új jelszó</label>
-                    <input
-                      className="form-input"
-                      type="password"
-                      value={pwForm.newPassword}
-                      onChange={e => setPwForm({...pwForm, newPassword: e.target.value})}
-                      required
-                    />
+                    <div style={{position: 'relative'}}>
+                      <input
+                        className="form-input"
+                        type={showPw.new ? 'text' : 'password'}
+                        value={pwForm.newPassword}
+                        onChange={e => setPwForm({...pwForm, newPassword: e.target.value})}
+                        style={{paddingRight: '40px'}}
+                        required
+                      />
+                      <button type="button" onClick={() => setShowPw(p => ({...p, new: !p.new}))} style={{position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#666'}}>
+                        {showPw.new
+                          ? <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75C21.27 7.61 17 4.5 12 4.5c-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zm7.53 5.53 1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78 3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+                          : <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>}
+                      </button>
+                    </div>
                   </div>
                   <div className="form-group">
                     <label>Új jelszó megerősítése</label>
-                    <input
-                      className="form-input"
-                      type="password"
-                      value={pwForm.confirmPassword}
-                      onChange={e => setPwForm({...pwForm, confirmPassword: e.target.value})}
-                      required
-                    />
+                    <div style={{position: 'relative'}}>
+                      <input
+                        className="form-input"
+                        type={showPw.confirm ? 'text' : 'password'}
+                        value={pwForm.confirmPassword}
+                        onChange={e => setPwForm({...pwForm, confirmPassword: e.target.value})}
+                        style={{paddingRight: '40px'}}
+                        required
+                      />
+                      <button type="button" onClick={() => setShowPw(p => ({...p, confirm: !p.confirm}))} style={{position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#666'}}>
+                        {showPw.confirm
+                          ? <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75C21.27 7.61 17 4.5 12 4.5c-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zm7.53 5.53 1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78 3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+                          : <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>}
+                      </button>
+                    </div>
                   </div>
                   <button className="btn-save" type="submit">
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

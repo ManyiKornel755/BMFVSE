@@ -34,6 +34,7 @@ app.use('/api/roles', require('./src/routes/roles'));
 app.use('/api/events', require('./src/routes/events'));
 app.use('/api/user-documents', require('./src/routes/user-documents'));
 app.use('/api/emails', require('./src/routes/emails'));
+app.use('/api/certificates', require('./src/routes/certificates'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
