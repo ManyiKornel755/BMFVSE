@@ -14,7 +14,7 @@ export default function Messages() {
   const [selectedRecipients, setSelectedRecipients] = useState([]);
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [sendToEveryone, setSendToEveryone] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('draft');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchAll(); }, []);
@@ -151,7 +151,8 @@ export default function Messages() {
   });
 
   let displayedMessages = [];
-  if (filterStatus === 'draft') displayedMessages = draftMessages;
+  if (filterStatus === 'all') displayedMessages = messages.filter(m => !m.deleted_at);
+  else if (filterStatus === 'draft') displayedMessages = draftMessages;
   else if (filterStatus === 'active') displayedMessages = activeMessages;
   else if (filterStatus === 'expired') displayedMessages = expiredMessages;
 
@@ -167,6 +168,7 @@ export default function Messages() {
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
               >
+                <option value="all">Összes</option>
                 <option value="draft">Vázlatok</option>
                 <option value="active">Aktív üzenetek</option>
                 <option value="expired">Lejárt üzenetek</option>
@@ -179,6 +181,7 @@ export default function Messages() {
         <div className="card">
           {displayedMessages.length === 0 && (
             <p>
+              {filterStatus === 'all' && 'Nincsenek közlemények.'}
               {filterStatus === 'draft' && 'Nincsenek vázlatok.'}
               {filterStatus === 'active' && 'Nincsenek aktív üzenetek.'}
               {filterStatus === 'expired' && 'Nincsenek lejárt üzenetek.'}
