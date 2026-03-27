@@ -11,8 +11,44 @@ const authorize = require('../middlewares/authorize');
 router.get('/', authenticate, async (req, res, next) => {
   try {
     const trainings = await Event.getAll();
-    const trainingEvents = trainings.filter(e => e.event_type === 'training');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const trainingEvents = trainings.filter(e =>
+      e.event_type === 'training' && new Date(e.event_date) >= today
+    );
     res.json(trainingEvents);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/trainings/log - Edzésnapló (lejárt edzések részletekkel)
+router.get('/log', authenticate, authorize('admin'), async (req, res, next) => {
+  try {
+    const { sql, poolPromise } = require('../config/database');
+    const pool = await poolPromise;
+    const now = new Date();
+
+    const result = await pool.request()
+      .input('now', sql.DateTime2, now)
+      .query(`
+        SELECT
+          e.id,
+          e.title,
+          e.description,
+          e.event_date,
+          e.location,
+          e.created_by as creator_id,
+          u.name as creator_name,
+          (SELECT COUNT(*) FROM event_participants ep WHERE ep.event_id = e.id) as participants_count,
+          e.target_group_id
+        FROM events e
+        LEFT JOIN users u ON e.created_by = u.id
+        WHERE e.event_type = 'training' AND e.event_date < @now
+        ORDER BY e.event_date DESC
+      `);
+
+    res.json(result.recordset);
   } catch (error) {
     next(error);
   }
@@ -176,38 +212,6 @@ router.get('/stats/:userId', authenticate, async (req, res, next) => {
         attended: t.attended === 1
       }))
     });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// GET /api/trainings/log - Edzésnapló (lejárt edzések részletekkel)
-router.get('/log', authenticate, authorize('admin'), async (req, res, next) => {
-  try {
-    const { sql, poolPromise } = require('../config/database');
-    const pool = await poolPromise;
-    const now = new Date();
-
-    const result = await pool.request()
-      .input('now', sql.DateTime2, now)
-      .query(`
-        SELECT
-          e.id,
-          e.title,
-          e.description,
-          e.event_date,
-          e.location,
-          e.created_by as creator_id,
-          u.name as creator_name,
-          (SELECT COUNT(*) FROM event_participants ep WHERE ep.event_id = e.id) as participants_count,
-          e.target_group_id
-        FROM events e
-        LEFT JOIN users u ON e.created_by = u.id
-        WHERE e.event_type = 'training' AND e.event_date < @now
-        ORDER BY e.event_date DESC
-      `);
-
-    res.json(result.recordset);
   } catch (error) {
     next(error);
   }
