@@ -44,7 +44,8 @@ router.post('/login', [
         id: user.id,
         email: user.email,
         name: user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-        roles: roleNames
+        roles: roleNames,
+        profile_image: user.profile_image || null
       }
     });
   } catch (error) {

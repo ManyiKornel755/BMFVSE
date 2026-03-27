@@ -339,7 +339,7 @@ body {
 
 /* Top Bar */
 .top-bar {
-    height: 64px;
+    height: 84px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -447,7 +447,7 @@ body {
 
 .profile-dropdown {
     position: absolute;
-    top: 70px;
+    top: 90px;
     right: 16px;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 8px;

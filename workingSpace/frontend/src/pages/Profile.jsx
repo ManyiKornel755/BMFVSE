@@ -4,7 +4,7 @@ import { useAuth } from '../utils/AuthContext';
 import api from '../services/api';
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', address: '' });
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -103,11 +103,10 @@ export default function Profile() {
     formData.append('profileImage', profileImage);
 
     try {
-      const response = await api.post('/users/me/profile-image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      const res = await api.post('/users/me/profile-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
+      updateUser({ profile_image: res.data.imageUrl });
       setProfileMsg({ type: 'success', text: 'Profilkép sikeresen feltöltve!' });
       fetchProfile();
       setProfileImage(null);

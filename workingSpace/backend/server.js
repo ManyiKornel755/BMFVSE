@@ -5,8 +5,12 @@ require('dotenv').config();
 const app = express();
 
 // Middlewares
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',');
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 app.use(express.json());

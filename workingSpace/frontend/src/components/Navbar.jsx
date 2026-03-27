@@ -140,29 +140,28 @@ const Navbar = () => {
             </button>
           ) : (
             <>
-              <button
-                className="profile-button hide-indicator"
+              <div
                 onClick={toggleProfileDropdown}
+                style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer'}}
               >
-                {user?.profile_image ? (
-                  <img
-                    src={getImageUrl(user.profile_image)}
-                    alt="Profil"
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      marginRight: '8px'
-                    }}
-                  />
-                ) : (
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                  </svg>
-                )}
-                <span>Profil</span>
-              </button>
+                <button
+                  className="profile-button hide-indicator"
+                  style={{padding: 0, overflow: 'hidden'}}
+                >
+                  {user?.profile_image ? (
+                    <img
+                      src={getImageUrl(user.profile_image)}
+                      alt="Profil"
+                      style={{width: '56px', height: '56px', objectFit: 'cover', display: 'block'}}
+                    />
+                  ) : (
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                  )}
+                </button>
+                <span style={{color: 'white', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap', textShadow: '0 1px 3px rgba(0,0,0,0.3)'}}>{user?.name || user?.email}</span>
+              </div>
 
               {/* Profile Dropdown */}
               <div className={`profile-dropdown ${profileDropdownOpen ? 'active' : ''}`}>

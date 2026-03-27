@@ -10,11 +10,17 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    
+
     if (token && userData) {
       setUser(JSON.parse(userData));
+      // Friss adatok betöltése (pl. profilkép)
+      api.get('/users/me').then(res => {
+        const fresh = { ...JSON.parse(userData), profile_image: res.data.profile_image || null };
+        localStorage.setItem('user', JSON.stringify(fresh));
+        setUser(fresh);
+      }).catch(() => {});
     }
-    
+
     setLoading(false);
   }, []);
 
@@ -27,6 +33,12 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     
     return userData;
+  };
+
+  const updateUser = (updatedFields) => {
+    const newUser = { ...user, ...updatedFields };
+    localStorage.setItem('user', JSON.stringify(newUser));
+    setUser(newUser);
   };
 
   const logout = () => {
@@ -48,7 +60,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, isAdmin, isCoach, isAdminOrCoach }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, loading, isAdmin, isCoach, isAdminOrCoach }}>
       {children}
     </AuthContext.Provider>
   );
