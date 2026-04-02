@@ -16,6 +16,16 @@ export default function Profile() {
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
+  const [documentsTab, setDocumentsTab] = useState('certificates');
+  const [institutionForm, setInstitutionForm] = useState({
+    mother_name: '',
+    birth_place: '',
+    id_number: '',
+    institution_name: '',
+    institution_head: '',
+    class_name: ''
+  });
+  const [institutionMsg, setInstitutionMsg] = useState(null);
 
   useEffect(() => { fetchProfile(); }, []);
 
@@ -29,6 +39,14 @@ export default function Profile() {
         email: data.email || '',
         phone: data.phone || '',
         address: data.address || ''
+      });
+      setInstitutionForm({
+        mother_name: data.mother_name || (data.parent_name || ''),
+        birth_place: data.birth_place || '',
+        id_number: data.id_number || '',
+        institution_name: data.institution_name || '',
+        institution_head: data.institution_head || '',
+        class_name: data.class_name || ''
       });
     } catch(err) {
       console.error(err);
@@ -70,6 +88,17 @@ export default function Profile() {
       setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch(err) {
       setPwMsg({ type: 'error', text: err.response?.data?.error?.message || 'Hiba a jelszóváltás során!' });
+    }
+  }
+
+  async function handleInstitutionSave(e) {
+    e.preventDefault();
+    try {
+      await api.patch('/users/me', institutionForm);
+      setInstitutionMsg({ type: 'success', text: 'Intézményi adatok sikeresen mentve!' });
+      fetchProfile();
+    } catch(err) {
+      setInstitutionMsg({ type: 'error', text: 'Hiba a mentés során!' });
     }
   }
 

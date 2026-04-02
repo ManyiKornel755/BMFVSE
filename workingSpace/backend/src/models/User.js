@@ -44,7 +44,7 @@ class User {
   }
 
   static async update(id, data) {
-    const allowed = ['email', 'phone', 'address', 'birth_date', 'parent_name', 'parent_email', 'parent_phone', 'relationship'];
+    const allowed = ['email', 'phone', 'address', 'birth_date', 'birth_place', 'mother_name', 'id_number', 'parent_name', 'parent_email', 'parent_phone', 'relationship'];
     const fields = [];
     const pool = await poolPromise;
     const request = pool.request().input('id', sql.Int, id);
@@ -95,7 +95,9 @@ class User {
     const pool = await poolPromise;
     const result = await pool.request().query(`
       SELECT
-        u.id, u.name, u.email, u.phone, u.address, u.is_member, u.created_at, u.updated_at,
+        u.id, u.name, u.first_name, u.last_name, u.email, u.phone, u.address, u.is_member,
+        u.birth_date, u.birth_place, u.mother_name, u.id_number, u.parent_name,
+        u.created_at, u.updated_at,
         (
           SELECT r.id, r.name
           FROM roles r
