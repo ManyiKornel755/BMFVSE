@@ -10,8 +10,7 @@ export default function Iskolaigazolas() {
   const [memberDetails, setMemberDetails] = useState(null);
   const [certificates, setCertificates] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [logo, setLogo] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(null);
+  const [logoPreview] = useState('/egyesulet_logo.png');
   const [mode, setMode] = useState('personal');
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -82,14 +81,25 @@ export default function Iskolaigazolas() {
       console.error('Failed to fetch groups:', err);
     }
     // Pre-fill member data if available
-    if (memberDetails) {
+    if (memberDetails || selectedMember) {
+      const member = memberDetails || selectedMember;
+      const birthDateFormatted = member.birth_date ? new Date(member.birth_date).toISOString().split('T')[0] : '';
+
+      // Név összeállítása
+      let fullName = '';
+      if (member.name) {
+        fullName = member.name;
+      } else if (member.first_name || member.last_name) {
+        fullName = `${member.first_name || ''} ${member.last_name || ''}`.trim();
+      }
+
       setCreateForm({
-        personName: memberDetails.name || `${selectedMember.first_name} ${selectedMember.last_name}`,
-        birthDate: memberDetails.birth_date || '',
-        birthPlace: memberDetails.birth_place || '',
-        motherName: memberDetails.mother_name || '',
-        idNumber: memberDetails.id_number || '',
-        address: memberDetails.address || '',
+        personName: fullName,
+        birthDate: birthDateFormatted,
+        birthPlace: member.birth_place || '',
+        motherName: member.mother_name || (member.parent_name || ''),
+        idNumber: member.id_number || '',
+        address: member.address || '',
         certificateType: 'membership',
         issueDate: new Date().toISOString().split('T')[0],
         validUntil: '',
@@ -109,13 +119,26 @@ export default function Iskolaigazolas() {
   }
 
   function handleReset() {
+    const member = memberDetails || selectedMember;
+    const birthDateFormatted = member?.birth_date ? new Date(member.birth_date).toISOString().split('T')[0] : '';
+
+    // Név összeállítása
+    let fullName = '';
+    if (member) {
+      if (member.name) {
+        fullName = member.name;
+      } else if (member.first_name || member.last_name) {
+        fullName = `${member.first_name || ''} ${member.last_name || ''}`.trim();
+      }
+    }
+
     setCreateForm({
-      personName: memberDetails?.name || `${selectedMember.first_name} ${selectedMember.last_name}`,
-      birthDate: memberDetails?.birth_date || '',
-      birthPlace: memberDetails?.birth_place || '',
-      motherName: memberDetails?.mother_name || '',
-      idNumber: memberDetails?.id_number || '',
-      address: memberDetails?.address || '',
+      personName: fullName,
+      birthDate: birthDateFormatted,
+      birthPlace: member?.birth_place || '',
+      motherName: member?.mother_name || (member?.parent_name || ''),
+      idNumber: member?.id_number || '',
+      address: member?.address || '',
       certificateType: '',
       issueDate: new Date().toISOString().split('T')[0],
       validUntil: '',
@@ -126,8 +149,6 @@ export default function Iskolaigazolas() {
     });
     setMode('personal');
     setSelectedGroup(null);
-    setLogo(null);
-    setLogoPreview(null);
   }
 
   function handlePreview() {
@@ -163,25 +184,6 @@ ${createForm.issuerPosition}
     `.trim();
   }
 
-  function handleLogoSelect(e) {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        setFeedback({ type: 'error', message: 'A logo mérete maximum 2MB lehet!' });
-        return;
-      }
-      if (!file.type.startsWith('image/')) {
-        setFeedback({ type: 'error', message: 'Csak képfájlok tölthetők fel!' });
-        return;
-      }
-      setLogo(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  }
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -307,19 +309,22 @@ ${createForm.issuerPosition}
             <h2 style={{ color: '#1976D2', marginBottom: '16px' }}>Tagok</h2>
             {loading ? <p>Betöltés...</p> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {members.map(member => (
-                  <div
-                    key={member.id}
-                    className="list-item"
-                    onClick={() => handleMemberClick(member)}
-                    style={{ cursor: 'pointer', padding: '16px', borderRadius: '8px', background: 'rgba(30, 136, 229, 0.05)', transition: 'all 0.2s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(30, 136, 229, 0.15)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(30, 136, 229, 0.05)'}
-                  >
-                    <strong style={{ fontSize: '1.1rem', color: '#0D47A1' }}>{member.first_name} {member.last_name}</strong>
-                    <p className="text-secondary" style={{ margin: '4px 0 0 0' }}>{member.email}</p>
-                  </div>
-                ))}
+                {members.map(member => {
+                  const displayName = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim() || 'Név nélkül';
+                  return (
+                    <div
+                      key={member.id}
+                      className="list-item"
+                      onClick={() => handleMemberClick(member)}
+                      style={{ cursor: 'pointer', padding: '16px', borderRadius: '8px', background: 'rgba(30, 136, 229, 0.05)', transition: 'all 0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(30, 136, 229, 0.15)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(30, 136, 229, 0.05)'}
+                    >
+                      <strong style={{ fontSize: '1.25rem', color: '#0D47A1', fontWeight: '700' }}>{displayName}</strong>
+                      <p className="text-secondary" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>{member.email}</p>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -396,29 +401,15 @@ ${createForm.issuerPosition}
 
               {/* Organization Header */}
               <div className="blue-header" style={{ textAlign: 'center', marginBottom: '24px', padding: '20px', background: 'linear-gradient(135deg, #1E88E5 0%, #1565C0 100%)', borderRadius: '12px', color: 'white' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '12px' }}>
-                  <div style={{ width: '80px', height: '80px', background: 'rgba(255,255,255,0.2)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed rgba(255,255,255,0.5)' }}>
-                    {logoPreview ? (
-                      <img src={logoPreview} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} />
-                    ) : (
-                      <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>Logo</span>
-                    )}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+                  <div style={{ width: '80px', height: '80px', background: 'rgba(255,255,255,0.2)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px' }}>
+                    <img src={logoPreview} alt="Egyesület Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   </div>
                   <div>
                     <h2 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 'bold' }}>Balatonmáriai Vizisport Egyesület</h2>
                     <p style={{ margin: '4px 0 0 0', fontSize: '0.95rem', opacity: 0.9 }}>Igazolás Generátor</p>
                   </div>
                 </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoSelect}
-                  style={{ display: 'none' }}
-                  id="logo-upload"
-                />
-                <label htmlFor="logo-upload" style={{ display: 'inline-block', padding: '6px 12px', background: 'rgba(255,255,255,0.2)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem', border: '1px solid rgba(255,255,255,0.3)' }}>
-                  Logo feltöltése
-                </label>
               </div>
 
               <form onSubmit={handleCreate}>
