@@ -1,5 +1,3 @@
-/* ===== WAVEALERT - BALATON KÉK TÉMA ===== */
-/* Reset and Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -1642,5 +1640,4 @@ body {
 .blue-header h2,
 .blue-header h3 {
     color: white !important;
-}
 }

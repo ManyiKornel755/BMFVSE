@@ -145,12 +145,6 @@ export default function Profile() {
           >
             Dokumentumok
           </button>
-          <button
-            className={`tab ${activeTab === 3 ? 'active' : ''}`}
-            onClick={() => setActiveTab(3)}
-          >
-            Beállítások
-          </button>
         </div>
 
         <div className="tab-content">
@@ -176,9 +170,6 @@ export default function Profile() {
                         </svg>
                       )}
                     </div>
-                    <button className="btn-upload" onClick={() => setActiveTab(1)}>
-                      Kép feltöltése
-                    </button>
                   </div>
                 </div>
 
@@ -193,7 +184,7 @@ export default function Profile() {
 
                   <div className="info-card">
                     <h3>Szerepkörök</h3>
-                    <p><strong>Felhasználói típus:</strong> {user?.roles?.map(r => r.name).join(', ') || 'Tag'}</p>
+                    <p><strong>Felhasználói típus:</strong> {profile?.roles?.map(r => r.name).join(', ') || 'Tag'}</p>
                     <p><strong>Regisztráció:</strong> {profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '-'}</p>
                   </div>
                 </div>
@@ -402,46 +393,6 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Tab 3 - Beállítások */}
-          <div className={`tab-pane ${activeTab === 3 ? 'active' : ''}`}>
-            <div className="form-panel center">
-              <h2>Beállítások</h2>
-              <div className="info-card">
-                <h3>Értesítések</h3>
-                <div className="form-group">
-                  <label style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                    <input type="checkbox" defaultChecked />
-                    <span>Email értesítések engedélyezése</span>
-                  </label>
-                </div>
-                <div className="form-group">
-                  <label style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                    <input type="checkbox" defaultChecked />
-                    <span>Üzenet értesítések</span>
-                  </label>
-                </div>
-                <div className="form-group">
-                  <label style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                    <input type="checkbox" />
-                    <span>Közlemények feliratkozás</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="info-card">
-                <h3>Adatvédelem</h3>
-                <p style={{marginBottom: '16px', color: '#1976D2'}}>
-                  Az adataid biztonságban vannak. További információkért olvasd el az adatvédelmi szabályzatunkat.
-                </p>
-                <button className="btn-save" style={{background: '#dc3545'}}>
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                  </svg>
-                  Fiók Törlése
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -116,7 +116,6 @@ const Navbar = () => {
             </Link>
           )}
         </div>
-        <div className="menu-footer"></div>
       </div>
 
       {/* Top Bar */}
