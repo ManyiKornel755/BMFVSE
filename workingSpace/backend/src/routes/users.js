@@ -22,10 +22,16 @@ router.get('/me', async (req, res, next) => {
       });
     }
 
+    // Get user roles
+    const roles = await User.getRoles(req.user.id);
+
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
 
-    res.json(userWithoutPassword);
+    res.json({
+      ...userWithoutPassword,
+      roles
+    });
   } catch (error) {
     next(error);
   }

@@ -121,16 +121,17 @@ router.post('/',
   }
 );
 
-// PUT /api/trainings/:id (admin only)
-router.put('/:id', authenticate, authorize('admin'), async (req, res, next) => {
+// PUT /api/trainings/:id (admin vagy coach)
+router.put('/:id', authenticate, authorize('admin', 'coach'), async (req, res, next) => {
   try {
-    const { title, description, event_date, location } = req.body;
+    const { title, description, event_date, location, target_group_id } = req.body;
 
     const updatedTraining = await Event.update(req.params.id, {
       title,
       description,
       event_date,
-      location
+      location,
+      target_group_id
     });
 
     if (!updatedTraining) {

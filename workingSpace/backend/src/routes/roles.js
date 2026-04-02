@@ -8,10 +8,34 @@ const router = express.Router();
 router.use(authenticate);
 router.use(isAdmin);
 
-// GET /api/roles (admin)
+// GET /api/roles (admin) - Include permissions
 router.get('/', async (req, res, next) => {
   try {
-    const roles = await Role.getAll();
+    const { sql, poolPromise } = require('../config/database');
+    const pool = await poolPromise;
+
+    const result = await pool.request().query(`
+      SELECT
+        r.id,
+        r.name,
+        r.description,
+        r.created_at,
+        (
+          SELECT p.id, p.name, p.description
+          FROM permissions p
+          INNER JOIN role_permissions rp ON p.id = rp.permission_id
+          WHERE rp.role_id = r.id
+          FOR JSON PATH
+        ) as permissions_json
+      FROM roles r
+      ORDER BY r.id
+    `);
+
+    const roles = result.recordset.map(role => ({
+      ...role,
+      permissions: role.permissions_json ? JSON.parse(role.permissions_json) : []
+    }));
+
     res.json(roles);
   } catch (error) {
     next(error);
@@ -36,10 +60,10 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// POST /api/roles (admin)
+// POST /api/roles (admin) - Create role with permissions
 router.post('/', async (req, res, next) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, permissions } = req.body;
 
     if (!name) {
       return res.status(400).json({
@@ -49,21 +73,54 @@ router.post('/', async (req, res, next) => {
     }
 
     const role = await Role.create({ name, description });
+
+    // Assign permissions if provided
+    if (permissions && Array.isArray(permissions) && permissions.length > 0) {
+      const { sql, poolPromise } = require('../config/database');
+      const pool = await poolPromise;
+
+      for (const permId of permissions) {
+        await pool.request()
+          .input('roleId', sql.Int, role.id)
+          .input('permId', sql.Int, permId)
+          .query('INSERT INTO role_permissions (role_id, permission_id) VALUES (@roleId, @permId)');
+      }
+    }
+
     res.status(201).json(role);
   } catch (error) {
     next(error);
   }
 });
 
-// PUT /api/roles/:id (admin)
+// PUT /api/roles/:id (admin) - Update role with permissions
 router.put('/:id', async (req, res, next) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, permissions } = req.body;
 
     const updatedRole = await Role.update(req.params.id, {
       name,
       description
     });
+
+    // Update permissions if provided
+    if (permissions !== undefined && Array.isArray(permissions)) {
+      const { sql, poolPromise } = require('../config/database');
+      const pool = await poolPromise;
+
+      // Remove all existing permissions
+      await pool.request()
+        .input('roleId', sql.Int, req.params.id)
+        .query('DELETE FROM role_permissions WHERE role_id = @roleId');
+
+      // Add new permissions
+      for (const permId of permissions) {
+        await pool.request()
+          .input('roleId', sql.Int, req.params.id)
+          .input('permId', sql.Int, permId)
+          .query('INSERT INTO role_permissions (role_id, permission_id) VALUES (@roleId, @permId)');
+      }
+    }
 
     res.json(updatedRole);
   } catch (error) {
@@ -106,6 +163,19 @@ router.get('/user/:userId', async (req, res, next) => {
   try {
     const roles = await Role.getUserRoles(req.params.userId);
     res.json(roles);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/roles/permissions/all (admin) - Get all available permissions
+router.get('/permissions/all', async (req, res, next) => {
+  try {
+    const { poolPromise } = require('../config/database');
+    const pool = await poolPromise;
+
+    const result = await pool.request().query('SELECT * FROM permissions ORDER BY name');
+    res.json(result.recordset);
   } catch (error) {
     next(error);
   }
