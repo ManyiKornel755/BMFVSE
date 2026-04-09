@@ -286,7 +286,9 @@ ${createForm.issuerPosition}
       <div className="main-content">
         <Navbar />
         <div className="container">
-          <p style={{ color: 'white' }}>Hozzáférés megtagadva.</p>
+          <div className="card">
+            <p>Hozzáférés megtagadva. Csak adminisztrátorok állíthatnak ki igazolást.</p>
+          </div>
         </div>
       </div>
     );

@@ -17,15 +17,14 @@ export default function Profile() {
   const [imagePreview, setImagePreview] = useState(null);
   const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
   const [documentsTab, setDocumentsTab] = useState('certificates');
-  const [institutionForm, setInstitutionForm] = useState({
-    mother_name: '',
+  const [certificateDataForm, setCertificateDataForm] = useState({
+    birth_date: '',
     birth_place: '',
+    mother_name: '',
     id_number: '',
-    institution_name: '',
-    institution_head: '',
-    class_name: ''
+    school_name: ''
   });
-  const [institutionMsg, setInstitutionMsg] = useState(null);
+  const [certificateDataMsg, setCertificateDataMsg] = useState(null);
 
   useEffect(() => { fetchProfile(); }, []);
 
@@ -40,13 +39,12 @@ export default function Profile() {
         phone: data.phone || '',
         address: data.address || ''
       });
-      setInstitutionForm({
-        mother_name: data.mother_name || (data.parent_name || ''),
+      setCertificateDataForm({
+        birth_date: data.birth_date ? new Date(data.birth_date).toISOString().split('T')[0] : '',
         birth_place: data.birth_place || '',
+        mother_name: data.mother_name || '',
         id_number: data.id_number || '',
-        institution_name: data.institution_name || '',
-        institution_head: data.institution_head || '',
-        class_name: data.class_name || ''
+        school_name: data.school_name || ''
       });
     } catch(err) {
       console.error(err);
@@ -91,14 +89,14 @@ export default function Profile() {
     }
   }
 
-  async function handleInstitutionSave(e) {
+  async function handleCertificateDataSave(e) {
     e.preventDefault();
     try {
-      await api.patch('/users/me', institutionForm);
-      setInstitutionMsg({ type: 'success', text: 'Intézményi adatok sikeresen mentve!' });
+      await api.patch('/users/me', certificateDataForm);
+      setCertificateDataMsg({ type: 'success', text: 'Igazoláshoz szükséges adatok sikeresen mentve!' });
       fetchProfile();
     } catch(err) {
-      setInstitutionMsg({ type: 'error', text: 'Hiba a mentés során!' });
+      setCertificateDataMsg({ type: 'error', text: 'Hiba a mentés során!' });
     }
   }
 
@@ -171,6 +169,12 @@ export default function Profile() {
           <button
             className={`tab ${activeTab === 2 ? 'active' : ''}`}
             onClick={() => setActiveTab(2)}
+          >
+            Igazoláshoz szükséges adatok
+          </button>
+          <button
+            className={`tab ${activeTab === 3 ? 'active' : ''}`}
+            onClick={() => setActiveTab(3)}
           >
             Dokumentumok
           </button>
@@ -393,8 +397,79 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Tab 2 - Dokumentumok */}
+          {/* Tab 2 - Igazoláshoz szükséges adatok */}
           <div className={`tab-pane ${activeTab === 2 ? 'active' : ''}`}>
+            <div className="form-panel center">
+              <h2>Igazoláshoz szükséges adatok</h2>
+              <p style={{color: '#666', marginBottom: '20px'}}>
+                Töltsd ki az alábbi adatokat, amelyek automatikusan betöltődnek az iskolaigazolás létrehozásánál.
+              </p>
+              {certificateDataMsg && (
+                <div className={`msg-feedback msg-feedback-${certificateDataMsg.type}`}>
+                  {certificateDataMsg.text}
+                </div>
+              )}
+              <form onSubmit={handleCertificateDataSave}>
+                <div className="form-group">
+                  <label>Születési dátum *</label>
+                  <input
+                    className="form-input"
+                    type="date"
+                    value={certificateDataForm.birth_date}
+                    onChange={e => setCertificateDataForm({...certificateDataForm, birth_date: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Születési hely *</label>
+                  <input
+                    className="form-input"
+                    value={certificateDataForm.birth_place}
+                    onChange={e => setCertificateDataForm({...certificateDataForm, birth_place: e.target.value})}
+                    placeholder="pl. Budapest"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Anyja neve *</label>
+                  <input
+                    className="form-input"
+                    value={certificateDataForm.mother_name}
+                    onChange={e => setCertificateDataForm({...certificateDataForm, mother_name: e.target.value})}
+                    placeholder="pl. Kovács Mária"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Személyi igazolvány szám</label>
+                  <input
+                    className="form-input"
+                    value={certificateDataForm.id_number}
+                    onChange={e => setCertificateDataForm({...certificateDataForm, id_number: e.target.value})}
+                    placeholder="Opcionális"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Iskola neve</label>
+                  <input
+                    className="form-input"
+                    value={certificateDataForm.school_name}
+                    onChange={e => setCertificateDataForm({...certificateDataForm, school_name: e.target.value})}
+                    placeholder="pl. Petőfi Sándor Általános Iskola"
+                  />
+                </div>
+                <button className="btn-save" type="submit">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                  </svg>
+                  Mentés
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Tab 3 - Dokumentumok */}
+          <div className={`tab-pane ${activeTab === 3 ? 'active' : ''}`}>
             <div className="form-panel center">
               <h2>Dokumentumok</h2>
               {certificates.length === 0 ? (
