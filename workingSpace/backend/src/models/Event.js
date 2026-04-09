@@ -16,17 +16,18 @@ class Event {
     return result.recordset[0] || null;
   }
 
-  static async create({ title, description, event_date, location, event_type, target_group_id = null, created_by = null }) {
+  static async create({ title, description, event_date, end_date = null, location, event_type, target_group_id = null, created_by = null }) {
     const pool = await poolPromise;
     const result = await pool.request()
       .input('title', sql.NVarChar, title)
       .input('description', sql.NVarChar, description || null)
       .input('event_date', sql.DateTime2, new Date(event_date))
+      .input('end_date', sql.DateTime2, end_date ? new Date(end_date) : null)
       .input('location', sql.NVarChar, location || null)
       .input('event_type', sql.NVarChar, event_type || null)
       .input('target_group_id', sql.Int, target_group_id)
       .input('created_by', sql.Int, created_by)
-      .query('INSERT INTO events (title, description, event_date, location, event_type, target_group_id, created_by) OUTPUT INSERTED.id VALUES (@title, @description, @event_date, @location, @event_type, @target_group_id, @created_by)');
+      .query('INSERT INTO events (title, description, event_date, end_date, location, event_type, target_group_id, created_by) OUTPUT INSERTED.id VALUES (@title, @description, @event_date, @end_date, @location, @event_type, @target_group_id, @created_by)');
     return this.findById(result.recordset[0].id);
   }
 
@@ -37,6 +38,7 @@ class Event {
     if (data.title !== undefined) { fields.push('title = @title'); request.input('title', sql.NVarChar, data.title); }
     if (data.description !== undefined) { fields.push('description = @description'); request.input('description', sql.NVarChar, data.description); }
     if (data.event_date !== undefined) { fields.push('event_date = @event_date'); request.input('event_date', sql.DateTime2, new Date(data.event_date)); }
+    if (data.end_date !== undefined) { fields.push('end_date = @end_date'); request.input('end_date', sql.DateTime2, data.end_date ? new Date(data.end_date) : null); }
     if (data.location !== undefined) { fields.push('location = @location'); request.input('location', sql.NVarChar, data.location); }
     if (fields.length === 0) throw new Error('No fields to update');
     await request.query(`UPDATE events SET ${fields.join(', ')} WHERE id = @id`);
