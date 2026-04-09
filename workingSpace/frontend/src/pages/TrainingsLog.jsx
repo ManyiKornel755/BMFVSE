@@ -40,7 +40,7 @@ export default function TrainingsLog() {
 
   async function fetchCoaches() {
     try {
-      const res = await api.get('/users?role=coach');
+      const res = await api.get('/trainings/coaches');
       setCoaches(res.data || []);
     } catch(err) {
       console.error(err);
