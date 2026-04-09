@@ -123,3 +123,4 @@ workingSpace/backend/src/services/emailService.js
 workingSpace/backend/scripts/create-admin.js
 workingSpace/backend/src/routes/auth.js
 workingSpace/backend/src/services/emailService.js
+workingSpace/frontend/src/pages/TrainingsCreate.jsx

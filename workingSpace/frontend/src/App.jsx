@@ -12,7 +12,6 @@ import Users from './pages/Users';
 import Roles from './pages/Roles';
 import Groups from './pages/Groups';
 import Trainings from './pages/Trainings';
-import TrainingsCreate from './pages/TrainingsCreate';
 import TrainingsStats from './pages/TrainingsStats';
 import TrainingsLog from './pages/TrainingsLog';
 import Messages from './pages/Messages';
