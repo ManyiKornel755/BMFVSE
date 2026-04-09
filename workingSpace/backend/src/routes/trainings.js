@@ -7,6 +7,21 @@ const EmailService = require('../services/emailService');
 const authenticate = require('../middlewares/authenticate');
 const authorize = require('../middlewares/authorize');
 
+// GET /api/trainings/coaches - Edzők listája
+router.get('/coaches', authenticate, async (req, res, next) => {
+  try {
+    const users = await User.getAllWithRoles();
+    const coaches = users.filter(u => {
+      if (!u.roles || !Array.isArray(u.roles)) return false;
+      const roleNames = u.roles.map(r => r.name);
+      return roleNames.includes('trainer') || roleNames.includes('admin');
+    });
+    res.json(coaches.map(c => ({ id: c.id, name: c.name, email: c.email })));
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/trainings
 router.get('/', authenticate, async (req, res, next) => {
   try {
@@ -37,13 +52,17 @@ router.get('/log', authenticate, authorize('admin'), async (req, res, next) => {
           e.title,
           e.description,
           e.event_date,
+          e.end_date,
           e.location,
           e.created_by as creator_id,
           u.name as creator_name,
+          e.assigned_coach_id,
+          coach.name as assigned_coach_name,
           (SELECT COUNT(*) FROM event_participants ep WHERE ep.event_id = e.id) as participants_count,
           e.target_group_id
         FROM events e
         LEFT JOIN users u ON e.created_by = u.id
+        LEFT JOIN users coach ON e.assigned_coach_id = coach.id
         WHERE e.event_type = 'training' AND e.event_date < @now
         ORDER BY e.event_date DESC
       `);
@@ -84,14 +103,16 @@ router.post('/',
         return res.status(400).json({ error: { message: 'Validation failed', details: errors.array() } });
       }
 
-      const { title, description, event_date, location, target_group_id } = req.body;
+      const { title, description, event_date, end_date, location, target_group_id, assigned_coach_id } = req.body;
 
       const newTraining = await Event.create({
         title,
         description,
         event_date,
+        end_date: end_date || null,
         location,
         target_group_id: target_group_id || null,
+        assigned_coach_id: assigned_coach_id || null,
         event_type: 'training',
         created_by: req.user.id
       });
@@ -124,14 +145,16 @@ router.post('/',
 // PUT /api/trainings/:id (admin vagy coach)
 router.put('/:id', authenticate, authorize('admin', 'coach'), async (req, res, next) => {
   try {
-    const { title, description, event_date, location, target_group_id } = req.body;
+    const { title, description, event_date, end_date, location, target_group_id, assigned_coach_id } = req.body;
 
     const updatedTraining = await Event.update(req.params.id, {
       title,
       description,
       event_date,
+      end_date,
       location,
-      target_group_id
+      target_group_id,
+      assigned_coach_id
     });
 
     if (!updatedTraining) {
