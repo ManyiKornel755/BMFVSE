@@ -18,7 +18,13 @@ export default function TrainingsStats() {
   async function fetchUsers() {
     try {
       const res = await api.get('/users');
-      setUsers(res.data || []);
+      // Kiszűrjük az admin szerepkörű felhasználókat
+      const regularUsers = (res.data || []).filter(user => {
+        if (!user.roles || !Array.isArray(user.roles)) return true;
+        const roleNames = user.roles.map(r => r.name);
+        return !roleNames.includes('admin');
+      });
+      setUsers(regularUsers);
     } catch(err) {
       console.error(err);
     } finally {
@@ -203,7 +209,15 @@ export default function TrainingsStats() {
                                   {new Date(training.event_date).toLocaleString('hu-HU')}
                                 </p>
                               </div>
-                              <span className={`badge ${training.attended ? 'badge-success' : 'badge-warning'}`}>
+                              <span style={{
+                                display: 'inline-block',
+                                padding: '6px 12px',
+                                borderRadius: '12px',
+                                fontSize: '0.85rem',
+                                fontWeight: '600',
+                                color: 'white',
+                                background: training.attended ? '#2E7D32' : '#C62828'
+                              }}>
                                 {training.attended ? 'Részt vett' : 'Nem vett részt'}
                               </span>
                             </div>
