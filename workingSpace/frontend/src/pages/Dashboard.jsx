@@ -123,8 +123,8 @@ export default function Dashboard() {
     }
   }
 
-  const upcomingTrainings = trainings.filter(t => new Date(t.event_date) >= new Date());
-  const sentMessages = messages.filter(m => m.status === 'sent');
+  const upcomingTrainings = trainings.filter(t => new Date(t.event_date) >= new Date()).slice(0, 1);
+  const sentMessages = messages.filter(m => m.status === 'sent').slice(0, 1);
 
   return (
     <div className="main-content">
