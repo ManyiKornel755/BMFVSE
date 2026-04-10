@@ -187,37 +187,50 @@ export default function Messages() {
               {filterStatus === 'expired' && 'Nincsenek lejárt üzenetek.'}
             </p>
           )}
-          {displayedMessages.map(msg => (
-            <div key={msg.id} className="message-item">
-              <div className="message-item-body" onClick={() => setSelectedMessage(msg)}>
-                <strong>{msg.title}</strong>
-                <p>{msg.content ? msg.content.substring(0, 100) + '...' : ''}</p>
-                <div className="message-item-meta">
-                  {msg.deleted_at ? (
-                    <span className="badge badge-sm badge-danger">Törölve</span>
-                  ) : msg.expires_at && new Date(msg.expires_at) <= new Date() ? (
-                    <span className="badge badge-sm badge-danger">Lejárt</span>
-                  ) : (
-                    <span className={`badge badge-sm badge-${msg.status}`}>
-                      {msg.status === 'sent' ? 'Elküldve' : 'Vázlat'}
-                    </span>
-                  )}
-                  {msg.expires_at && new Date(msg.expires_at) > new Date() && !msg.deleted_at && (
-                    <span className="badge badge-sm badge-warning" style={{background: '#ffa726'}}>
-                      Lejár: {new Date(msg.expires_at).toLocaleDateString('hu-HU')}
-                    </span>
-                  )}
-                  <small className="text-faint">
-                    Létrehozta: {creatorLabel(msg)} · {new Date(msg.created_at).toLocaleDateString('hu-HU')}
-                  </small>
+          {displayedMessages.map(msg => {
+            // Ellenőrizzük, hogy lejárt-e az üzenet
+            const isExpired = msg.deleted_at || (msg.expires_at && new Date(msg.expires_at) <= new Date());
+
+            return (
+              <div
+                key={msg.id}
+                className="message-item"
+                style={{
+                  background: isExpired ? '#ffebee' : 'white'
+                }}
+              >
+                <div className="message-item-body" onClick={() => setSelectedMessage(msg)}>
+                  <strong>{msg.title}</strong>
+                  <p>{msg.content ? msg.content.substring(0, 100) + '...' : ''}</p>
+                  <div className="message-item-meta">
+                    {msg.deleted_at ? (
+                      <span className="badge badge-sm badge-danger">Törölve</span>
+                    ) : msg.expires_at && new Date(msg.expires_at) <= new Date() ? (
+                      <span className="badge badge-sm badge-danger">Lejárt</span>
+                    ) : (
+                      <span className={`badge badge-sm badge-${msg.status}`}>
+                        {msg.status === 'sent' ? 'Elküldve' : 'Vázlat'}
+                      </span>
+                    )}
+                    {msg.expires_at && new Date(msg.expires_at) > new Date() && !msg.deleted_at && (
+                      <span className="badge badge-sm badge-warning" style={{background: '#ffa726'}}>
+                        Lejár: {new Date(msg.expires_at).toLocaleDateString('hu-HU')}
+                      </span>
+                    )}
+                    <small className="text-faint">
+                      Létrehozta: {creatorLabel(msg)} · {new Date(msg.created_at).toLocaleDateString('hu-HU')}
+                    </small>
+                  </div>
                 </div>
+                {isAdmin() && (
+                  <div className="message-item-actions">
+                    {msg.status === 'draft' && <button className="btn" onClick={() => handleSend(msg)}>Küldés</button>}
+                    <button className="btn-danger" onClick={() => handleDelete(msg.id)}>Törlés</button>
+                  </div>
+                )}
               </div>
-              {isAdmin() && (
-                <div className="message-item-actions">
-                  {msg.status === 'draft' && <button className="btn" onClick={() => handleSend(msg)}>Küldés</button>}
-                  <button className="btn-danger" onClick={() => handleDelete(msg.id)}>Törlés</button>
-                </div>)}
-            </div>))}
+            );
+          })}
         </div>
         {selectedMessage && (
           <div className="modal-overlay">
