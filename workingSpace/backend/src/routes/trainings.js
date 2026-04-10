@@ -80,9 +80,15 @@ router.get('/:id', authenticate, async (req, res, next) => {
     if (!training || training.event_type !== 'training') {
       return res.status(404).json({ error: { message: 'Training not found' } });
     }
-    
+
     const participants = await Event.getParticipants(req.params.id);
-    res.json({ ...training, participants });
+    const attendedParticipants = participants.filter(p => p.status === 'attended');
+
+    res.json({
+      ...training,
+      participants,
+      participants_count: attendedParticipants.length
+    });
   } catch (error) {
     next(error);
   }
