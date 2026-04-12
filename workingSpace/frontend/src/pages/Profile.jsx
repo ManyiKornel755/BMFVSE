@@ -16,6 +16,7 @@ export default function Profile() {
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
+  const [imgError, setImgError] = useState(false);
   const [documentsTab, setDocumentsTab] = useState('certificates');
   const [certificateDataForm, setCertificateDataForm] = useState({
     birth_date: '',
@@ -195,8 +196,8 @@ export default function Profile() {
                   <h2>Profilkép</h2>
                   <div style={{textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px'}}>
                     <div className="profile-image-placeholder">
-                      {profile?.profile_image ? (
-                        <img src={getImageUrl(profile.profile_image)} alt="Profilkép" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} />
+                      {profile?.profile_image && !imgError ? (
+                        <img src={getImageUrl(profile.profile_image)} alt="" onError={() => setImgError(true)} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} />
                       ) : (
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#42A5F5"/>
