@@ -105,11 +105,11 @@ const Navbar = () => {
               Csoportok
             </Link>
           )}
-          {isAdmin() && (
+          {/* {isAdmin() && (
             <Link to="/emails" className="menu-item" onClick={closeMenu}>
               Email küldés
             </Link>
-          )}
+          )} */}
           {isAdmin() && (
             <Link to="/iskolaigazolas" className="menu-item" onClick={closeMenu}>
               Iskolaigazolás
