@@ -17,13 +17,24 @@ export default function TrainingsStats() {
 
   async function fetchUsers() {
     try {
-      const res = await api.get('/users');
-      // Kiszűrjük az admin szerepkörű felhasználókat
-      const regularUsers = (res.data || []).filter(user => {
-        if (!user.roles || !Array.isArray(user.roles)) return true;
-        const roleNames = user.roles.map(r => r.name);
-        return !roleNames.includes('admin');
-      });
+      // Ha edző (trainer), akkor csak az ő edzéseinek résztvevőit kérdezzük le
+      // Admin esetén az összes felhasználót
+      const endpoint = isCoach() && !isAdmin()
+        ? '/trainings/my-participants'
+        : '/users';
+
+      const res = await api.get(endpoint);
+
+      // Ha /users endpointot használtunk, kiszűrjük az admin szerepkörű felhasználókat
+      let regularUsers = res.data || [];
+      if (endpoint === '/users') {
+        regularUsers = regularUsers.filter(user => {
+          if (!user.roles || !Array.isArray(user.roles)) return true;
+          const roleNames = user.roles.map(r => r.name);
+          return !roleNames.includes('admin');
+        });
+      }
+
       setUsers(regularUsers);
     } catch(err) {
       console.error(err);

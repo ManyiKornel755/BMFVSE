@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isCoach = () => {
-    return user?.roles?.includes('coach') || false;
+    return user?.roles?.includes('coach') || user?.roles?.includes('trainer') || false;
   };
 
   const isAdminOrCoach = () => {

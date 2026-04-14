@@ -12,6 +12,8 @@ export default function Trainings() {
   const [trainingDetail, setTrainingDetail] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('active'); // upcoming, active
+  const [filterCoach, setFilterCoach] = useState('all'); // all, specific coach id
   const [editForm, setEditForm] = useState({
     title: '',
     description: '',
@@ -173,17 +175,90 @@ export default function Trainings() {
     catch(err) { alert('Hiba!'); }
   }
 
+  // Szűrés
+  const filteredTrainings = trainings.filter(t => {
+    const eventDate = new Date(t.event_date);
+    const endDate = t.end_date ? new Date(t.end_date) : eventDate;
+    const now = new Date();
+
+    // Edző csak a saját edzéseit látja
+    if (isCoach() && !isAdmin()) {
+      const isMyTraining = t.created_by === user?.id;
+      if (!isMyTraining) return false;
+    }
+
+    // Admin szűrései
+    if (isAdmin()) {
+      // Edző szerinti szűrés
+      if (filterCoach !== 'all' && t.created_by !== parseInt(filterCoach)) {
+        return false;
+      }
+    }
+
+    // Státusz szűrés (admin és edző számára is)
+    if (filterStatus === 'upcoming') {
+      return eventDate > now;
+    } else if (filterStatus === 'active') {
+      return eventDate <= now && endDate >= now;
+    }
+
+    return true;
+  });
+
   return (
     <div className="main-content"><Navbar />
       <div className="container">
         <div className="page-header">
           <h1>Edzések</h1>
-          {(isAdmin() || isCoach()) && <button className="btn-add" onClick={() => setShowCreate(true)}>Hozzáadás</button>}
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Státusz szűrő - admin és edző számára */}
+            {(isAdmin() || isCoach()) && (
+              <select
+                className="message-filter-dropdown"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #ddd',
+                  background: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="active">Aktív</option>
+                <option value="upcoming">Várható</option>
+              </select>
+            )}
+
+            {/* Edző szűrő - csak admin számára */}
+            {isAdmin() && (
+              <select
+                className="message-filter-dropdown"
+                value={filterCoach}
+                onChange={(e) => setFilterCoach(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #ddd',
+                  background: 'white',
+                  cursor: 'pointer',
+                  minWidth: '150px'
+                }}
+              >
+                <option value="all">Minden edző</option>
+                {coaches.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            )}
+
+            {(isAdmin() || isCoach()) && <button className="btn-add" onClick={() => setShowCreate(true)}>Hozzáadás</button>}
+          </div>
         </div>
         {loading && <p style={{color: 'white'}}>Betöltés...</p>}
         <div className="card">
-          {trainings.length === 0 && <p>Nincsenek edzések.</p>}
-          {trainings.map(t => {
+          {filteredTrainings.length === 0 && <p>Nincsenek edzések ebben a kategóriában.</p>}
+          {filteredTrainings.map(t => {
             const eventDate = new Date(t.event_date);
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
