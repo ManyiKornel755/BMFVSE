@@ -299,9 +299,7 @@ const Groups = () => {
                 Válassza ki a hozzáadandó felhasználókat (max 50 egyszerre). Kiválasztva: {selectedUsers.length}
               </p>
 
-              {availableUsers.length === 0 ? (
-                <p>Minden felhasználó már tagja ennek a csoportnak</p>
-              ) : (
+              {availableUsers.length > 0 && (
                 <>
                   <div className="groups-user-list">
                     {availableUsers.map((user) => (
@@ -327,6 +325,7 @@ const Groups = () => {
                   </button>
                 </>
               )}
+
 
               <div className="modal-buttons">
                 <button onClick={() => setShowEditModal(false)} className="btn btn-secondary">

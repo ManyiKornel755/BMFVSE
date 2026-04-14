@@ -70,10 +70,12 @@ const Navbar = () => {
                 <Link to="/trainings" className="submenu-item" onClick={closeMenu}>
                   Edzések kezelése
                 </Link>
-                <Link to="/trainings/stats" className="submenu-item" onClick={closeMenu}>
-                  Edzés statisztika
-                </Link>
-                {isAdmin() && (
+                {isAdmin() && !isCoach() && (
+                  <Link to="/trainings/stats" className="submenu-item" onClick={closeMenu}>
+                    Edzés statisztika
+                  </Link>
+                )}
+                {isAdmin() && !isCoach() && (
                   <Link to="/trainings/log" className="submenu-item" onClick={closeMenu}>
                     Edzésnapló
                   </Link>

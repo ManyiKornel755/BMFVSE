@@ -4,7 +4,7 @@ import { useAuth } from '../utils/AuthContext';
 import api from '../services/api';
 
 export default function Messages() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isCoach } = useAuth();
   const [messages, setMessages] = useState([]);
   const [members, setMembers] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -174,7 +174,7 @@ export default function Messages() {
                 <option value="expired">Lejárt üzenetek</option>
               </select>
             )}
-            {isAdmin() && <button className="btn-add" onClick={() => setShowCreate(true)}>Hozzáadás</button>}
+            {(isAdmin() || isCoach()) && <button className="btn-add" onClick={() => setShowCreate(true)}>Hozzáadás</button>}
           </div>
         </div>
         {loading && <p>Betöltés...</p>}
@@ -204,16 +204,16 @@ export default function Messages() {
                   <p>{msg.content ? msg.content.substring(0, 100) + '...' : ''}</p>
                   <div className="message-item-meta">
                     {msg.deleted_at ? (
-                      <span className="badge badge-sm badge-danger">Törölve</span>
+                      <span className="badge badge-sm" style={{backgroundColor: '#d32f2f', color: 'white'}}>Törölve</span>
                     ) : msg.expires_at && new Date(msg.expires_at) <= new Date() ? (
-                      <span className="badge badge-sm badge-danger">Lejárt</span>
+                      <span className="badge badge-sm" style={{backgroundColor: '#d32f2f', color: 'white'}}>Lejárt</span>
+                    ) : msg.status === 'sent' ? (
+                      <span className="badge badge-sm" style={{backgroundColor: '#4caf50', color: 'white'}}>Elküldve</span>
                     ) : (
-                      <span className={`badge badge-sm badge-${msg.status}`}>
-                        {msg.status === 'sent' ? 'Elküldve' : 'Vázlat'}
-                      </span>
+                      <span className="badge badge-sm" style={{backgroundColor: '#ff9800', color: 'white'}}>Vázlat</span>
                     )}
                     {msg.expires_at && new Date(msg.expires_at) > new Date() && !msg.deleted_at && (
-                      <span className="badge badge-sm badge-warning" style={{background: '#ffa726'}}>
+                      <span className="badge badge-sm" style={{backgroundColor: '#ffa726', color: 'white'}}>
                         Lejár: {new Date(msg.expires_at).toLocaleDateString('hu-HU')}
                       </span>
                     )}
@@ -248,13 +248,13 @@ export default function Messages() {
                 <p><small style={{color: '#dc3545'}}>Törölve: {new Date(selectedMessage.deleted_at).toLocaleString('hu-HU')}</small></p>
               )}
               {selectedMessage.deleted_at ? (
-                <span className="badge badge-sm badge-danger">Törölve</span>
+                <span className="badge badge-sm" style={{backgroundColor: '#d32f2f', color: 'white'}}>Törölve</span>
               ) : selectedMessage.expires_at && new Date(selectedMessage.expires_at) <= new Date() ? (
-                <span className="badge badge-sm badge-danger">Lejárt</span>
+                <span className="badge badge-sm" style={{backgroundColor: '#d32f2f', color: 'white'}}>Lejárt</span>
+              ) : selectedMessage.status === 'sent' ? (
+                <span className="badge badge-sm" style={{backgroundColor: '#4caf50', color: 'white'}}>Elküldve</span>
               ) : (
-                <span className={`badge badge-sm badge-${selectedMessage.status}`}>
-                  {selectedMessage.status === 'sent' ? 'Elküldve' : 'Vázlat'}
-                </span>
+                <span className="badge badge-sm" style={{backgroundColor: '#ff9800', color: 'white'}}>Vázlat</span>
               )}
               <br />
               <button className="btn mt-16" onClick={() => setSelectedMessage(null)}>Bezárás</button>
