@@ -12,7 +12,7 @@ export default function Trainings() {
   const [trainingDetail, setTrainingDetail] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('active'); // upcoming, active
+  const [filterStatus, setFilterStatus] = useState('all'); // all, upcoming, active
   const [filterCoach, setFilterCoach] = useState('all'); // all, specific coach id
   const [editForm, setEditForm] = useState({
     title: '',
@@ -200,6 +200,8 @@ export default function Trainings() {
       return eventDate > now;
     } else if (filterStatus === 'active') {
       return eventDate <= now && endDate >= now;
+    } else if (filterStatus === 'all') {
+      return true;
     }
 
     return true;
@@ -225,6 +227,7 @@ export default function Trainings() {
                   cursor: 'pointer'
                 }}
               >
+                <option value="all">Összes</option>
                 <option value="active">Aktív</option>
                 <option value="upcoming">Várható</option>
               </select>
@@ -321,8 +324,25 @@ export default function Trainings() {
               <p><strong>Időpont:</strong> {new Date(selectedTraining.event_date).toLocaleString('hu-HU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
               <p><strong>Helyszín:</strong> {selectedTraining.location}</p>
               {trainingDetail ? (
-                <><p><strong>Leírás:</strong> {trainingDetail.description}</p>
-                <p><strong>Részt vevők:</strong> {trainingDetail.participants_count ?? (trainingDetail.participants ? trainingDetail.participants.length : 0)}</p></>
+                <>
+                  <p><strong>Leírás:</strong> {trainingDetail.description}</p>
+                  {trainingDetail.creator_name && (
+                    <p>
+                      <strong>Edző:</strong> {trainingDetail.creator_name}
+                      {trainingDetail.assigned_coach_name && ` - ${trainingDetail.assigned_coach_name}`}
+                    </p>
+                  )}
+                  <p><strong>Részt vevők ({trainingDetail.participants_count ?? (trainingDetail.participants ? trainingDetail.participants.length : 0)}):</strong></p>
+                  {trainingDetail.participants && trainingDetail.participants.length > 0 ? (
+                    <ul style={{paddingLeft: '20px', marginTop: '8px'}}>
+                      {trainingDetail.participants.map(p => (
+                        <li key={p.id}>{p.name} ({p.status})</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p style={{marginLeft: '20px', color: '#666'}}>Nincsenek jelentkezők</p>
+                  )}
+                </>
               ) : <p>Betöltés...</p>}
               {!isAdmin() && !isCoach() && (
                 <div className="mt-16">
