@@ -10,7 +10,30 @@ const authorize = require('../middlewares/authorize');
 // GET /api/messages
 router.get('/', authenticate, async (req, res, next) => {
   try {
-    const messages = await Message.getAll();
+    const userRoles = req.user.roles || [];
+    const isTrainer = userRoles.includes('trainer') && !userRoles.includes('admin');
+    const isAdmin = userRoles.includes('admin');
+    const filter = req.query.filter; // 'drafts' or 'active'
+
+    let messages;
+
+    if (isTrainer) {
+      // Edzők: csak saját vázlatok + aktív közlemények (nem lezártak)
+      if (filter === 'drafts') {
+        // Csak saját vázlatok
+        messages = await Message.getTrainerDrafts(req.user.id);
+      } else {
+        // Aktív közlemények (status = 'sent', nem lezárt, nem lejárt)
+        messages = await Message.getActiveMessages();
+      }
+    } else if (isAdmin) {
+      // Adminok: minden közlemény
+      messages = await Message.getAll();
+    } else {
+      // Sima userek: csak aktív közlemények
+      messages = await Message.getActiveMessages();
+    }
+
     res.json(messages);
   } catch (error) {
     next(error);
@@ -30,10 +53,10 @@ router.get('/:id', authenticate, async (req, res, next) => {
   }
 });
 
-// POST /api/messages (admin only)
+// POST /api/messages (admin or trainer)
 router.post('/',
   authenticate,
-  authorize('admin'),
+  authorize('admin', 'trainer'),
   [
     body('title').notEmpty().withMessage('Title is required'),
     body('content').notEmpty().withMessage('Content is required')
@@ -47,14 +70,30 @@ router.post('/',
 
       const { title, content, status, expires_at, recipients } = req.body;
 
+      // Debug logging
+      console.log('=== CREATE MESSAGE DEBUG ===');
+      console.log('User:', req.user);
+      console.log('Recipients received:', recipients);
+      console.log('Recipients type:', typeof recipients);
+      console.log('Recipients length:', recipients ? recipients.length : 'null/undefined');
+
+      // Trainer can only create drafts
+      const userRoles = req.user.roles || [];
+      const finalStatus = userRoles.includes('trainer') && !userRoles.includes('admin')
+        ? 'draft'
+        : (status || 'draft');
+
       const newMessage = await Message.create({
         title,
         content,
-        status: status || 'draft',
+        status: finalStatus,
         created_by: req.user.id,
         expires_at: expires_at || null,
         recipients: recipients || []
       });
+
+      console.log('Message created with ID:', newMessage.id);
+      console.log('=== END DEBUG ===');
 
       res.status(201).json(newMessage);
     } catch (error) {
@@ -71,10 +110,14 @@ router.post('/:id/send', authenticate, authorize('admin'), async (req, res, next
       return res.status(404).json({ error: { message: 'Message not found' } });
     }
 
+    console.log('=== SEND MESSAGE DEBUG ===');
+    console.log('Message ID:', req.params.id);
+    console.log('Message:', message);
+
     // Get recipients for this message from message_recipients table
     const { sql, poolPromise } = require('../config/database');
     const pool = await poolPromise;
-    const recipientsResult = await pool.request()
+    let recipientsResult = await pool.request()
       .input('message_id', sql.Int, req.params.id)
       .query(`
         SELECT u.email
@@ -83,10 +126,25 @@ router.post('/:id/send', authenticate, authorize('admin'), async (req, res, next
         WHERE mr.message_id = @message_id
       `);
 
-    const recipients = recipientsResult.recordset.map(r => r.email);
+    console.log('Recipients query result:', recipientsResult.recordset);
+
+    let recipients = recipientsResult.recordset.map(r => r.email);
+
+    // If no direct recipients, try to get recipients from group_id
+    if (recipients.length === 0 && message.group_id) {
+      const groupRecipientsResult = await pool.request()
+        .input('group_id', sql.Int, message.group_id)
+        .query(`
+          SELECT u.email
+          FROM group_members gm
+          JOIN users u ON gm.user_id = u.id
+          WHERE gm.group_id = @group_id
+        `);
+      recipients = groupRecipientsResult.recordset.map(r => r.email);
+    }
 
     if (recipients.length === 0) {
-      return res.status(400).json({ error: { message: 'No recipients for this message' } });
+      return res.status(400).json({ error: { message: 'No recipients for this message. Please add recipients before sending.' } });
     }
 
     const emailResult = await EmailService.sendBulkEmail(

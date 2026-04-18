@@ -1,10 +1,10 @@
-// const sgMail = require('@sendgrid/mail');
+const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
-// Email sending temporarily disabled
-// if (process.env.SENDGRID_API_KEY) {
-//   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-// }
+// Initialize SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
 class EmailService {
   static async sendEmail(to, subject, text, html = null) {
@@ -12,6 +12,7 @@ class EmailService {
       console.warn('SendGrid API key not configured. Email not sent.');
       return { success: false, message: 'Email service not configured' };
     }
+
 
     const msg = {
       to,
@@ -22,8 +23,8 @@ class EmailService {
     };
 
     try {
-      // await sgMail.send(msg);
-      console.log(`Email sending disabled. Would have sent to ${to}`);
+      await sgMail.send(msg);
+      console.log(`Email sent successfully to ${to}`);
       return { success: true };
     } catch (error) {
       console.error('Email sending failed:', error.message);
@@ -46,8 +47,8 @@ class EmailService {
     }));
 
     try {
-      // await sgMail.send(messages);
-      console.log(`Bulk email sending disabled. Would have sent to ${recipients.length} recipients`);
+      await sgMail.send(messages);
+      console.log(`Bulk email sent successfully to ${recipients.length} recipients`);
       return { success: true, count: recipients.length };
     } catch (error) {
       console.error('Bulk email sending failed:', error.message);

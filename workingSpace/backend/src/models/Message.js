@@ -50,6 +50,44 @@ class Message {
     return result.recordset;
   }
 
+  static async getActiveMessages() {
+    const pool = await poolPromise;
+    const result = await pool.request().query(`
+      SELECT m.*,
+        u.name as creator_name,
+        r.name as creator_role
+      FROM messages m
+      LEFT JOIN users u ON m.created_by = u.id
+      LEFT JOIN user_roles ur ON u.id = ur.user_id
+      LEFT JOIN roles r ON ur.role_id = r.id
+      WHERE m.status = 'sent'
+        AND m.deleted_at IS NULL
+        AND (m.expires_at IS NULL OR m.expires_at > GETDATE())
+      ORDER BY m.created_at DESC
+    `);
+    return result.recordset;
+  }
+
+  static async getTrainerDrafts(trainerId) {
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('trainer_id', sql.Int, trainerId)
+      .query(`
+        SELECT m.*,
+          u.name as creator_name,
+          r.name as creator_role
+        FROM messages m
+        LEFT JOIN users u ON m.created_by = u.id
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        WHERE m.created_by = @trainer_id
+          AND m.status = 'draft'
+          AND m.deleted_at IS NULL
+        ORDER BY m.created_at DESC
+      `);
+    return result.recordset;
+  }
+
   static async findById(id) {
     const pool = await poolPromise;
     const result = await pool.request()
@@ -71,13 +109,19 @@ class Message {
     const messageId = result.recordset[0].id;
 
     // Add recipients
+    console.log('Message.create - Adding recipients for message ID:', messageId);
+    console.log('Recipients array:', recipients);
     if (recipients && recipients.length > 0) {
       for (const userId of recipients) {
+        console.log('Inserting recipient user_id:', userId);
         await pool.request()
           .input('message_id', sql.Int, messageId)
           .input('user_id', sql.Int, userId)
           .query('INSERT INTO message_recipients (message_id, user_id) VALUES (@message_id, @user_id)');
       }
+      console.log('All recipients inserted successfully');
+    } else {
+      console.log('No recipients to insert (empty or null array)');
     }
 
     return this.findById(messageId);

@@ -76,28 +76,45 @@ router.get('/log', authenticate, authorize('admin'), async (req, res, next) => {
 // GET /api/trainings/:id
 router.get('/:id', authenticate, async (req, res, next) => {
   try {
-    const training = await Event.findById(req.params.id);
+    const { sql, poolPromise } = require('../config/database');
+    const pool = await poolPromise;
+
+    // Edzés adatait lekérjük az edző nevével együtt
+    const result = await pool.request()
+      .input('id', sql.Int, req.params.id)
+      .query(`
+        SELECT
+          e.*,
+          creator.name as creator_name,
+          coach.name as assigned_coach_name
+        FROM events e
+        LEFT JOIN users creator ON e.created_by = creator.id
+        LEFT JOIN users coach ON e.assigned_coach_id = coach.id
+        WHERE e.id = @id
+      `);
+
+    const training = result.recordset[0];
+
     if (!training || training.event_type !== 'training') {
       return res.status(404).json({ error: { message: 'Training not found' } });
     }
 
     const participants = await Event.getParticipants(req.params.id);
-    const attendedParticipants = participants.filter(p => p.status === 'attended');
 
     res.json({
       ...training,
       participants,
-      participants_count: attendedParticipants.length
+      participants_count: participants.length
     });
   } catch (error) {
     next(error);
   }
 });
 
-// POST /api/trainings (admin vagy coach) - KRITIKUS: értesítés küldés!
+// POST /api/trainings (admin vagy trainer) - KRITIKUS: értesítés küldés!
 router.post('/',
   authenticate,
-  authorize('admin', 'coach'),
+  authorize('admin', 'trainer'),
   [
     body('title').notEmpty().withMessage('Title is required'),
     body('event_date').isISO8601().withMessage('Valid date is required')
@@ -148,8 +165,8 @@ router.post('/',
   }
 );
 
-// PUT /api/trainings/:id (admin vagy coach)
-router.put('/:id', authenticate, authorize('admin', 'coach'), async (req, res, next) => {
+// PUT /api/trainings/:id (admin vagy trainer)
+router.put('/:id', authenticate, authorize('admin', 'trainer'), async (req, res, next) => {
   try {
     const { title, description, event_date, end_date, location, target_group_id, assigned_coach_id } = req.body;
 
@@ -173,8 +190,8 @@ router.put('/:id', authenticate, authorize('admin', 'coach'), async (req, res, n
   }
 });
 
-// DELETE /api/trainings/:id (admin vagy coach)
-router.delete('/:id', authenticate, authorize('admin', 'coach'), async (req, res, next) => {
+// DELETE /api/trainings/:id (admin vagy trainer)
+router.delete('/:id', authenticate, authorize('admin', 'trainer'), async (req, res, next) => {
   try {
     const deleted = await Event.delete(req.params.id);
     if (!deleted) {
@@ -192,11 +209,35 @@ router.get('/stats/:userId', authenticate, async (req, res, next) => {
     const { sql, poolPromise } = require('../config/database');
     const pool = await poolPromise;
     const userId = parseInt(req.params.userId);
+    const currentUserId = req.user.id;
+    const userRoles = req.user.roles || [];
 
-    // Összes training ahol a user résztvevő volt
-    const result = await pool.request()
-      .input('userId', sql.Int, userId)
-      .query(`
+    // Ha edző (trainer), csak az ő edzései legyenek figyelembe véve
+    let queryString;
+    const request = pool.request()
+      .input('userId', sql.Int, userId);
+
+    if (userRoles.includes('trainer') && !userRoles.includes('admin')) {
+      request.input('currentUserId', sql.Int, currentUserId);
+      queryString = `
+        SELECT
+          e.id,
+          e.title,
+          e.event_date,
+          e.location,
+          e.description,
+          ep.status,
+          CASE
+            WHEN ep.status IN ('confirmed', 'attended') THEN 1
+            ELSE 0
+          END as attended
+        FROM events e
+        LEFT JOIN event_participants ep ON e.id = ep.event_id AND ep.user_id = @userId
+        WHERE e.event_type = 'training' AND e.created_by = @currentUserId
+        ORDER BY e.event_date DESC
+      `;
+    } else {
+      queryString = `
         SELECT
           e.id,
           e.title,
@@ -212,7 +253,11 @@ router.get('/stats/:userId', authenticate, async (req, res, next) => {
         LEFT JOIN event_participants ep ON e.id = ep.event_id AND ep.user_id = @userId
         WHERE e.event_type = 'training'
         ORDER BY e.event_date DESC
-      `);
+      `;
+    }
+
+    // Összes training ahol a user résztvevő volt
+    const result = await request.query(queryString);
 
     const trainings = result.recordset;
     const now = new Date();
@@ -242,6 +287,54 @@ router.get('/stats/:userId', authenticate, async (req, res, next) => {
         attended: t.attended === 1
       }))
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/trainings/my-participants - Edző saját edzéseinek jelentkezői
+router.get('/my-participants', authenticate, authorize('admin', 'trainer'), async (req, res, next) => {
+  try {
+    const { sql, poolPromise } = require('../config/database');
+    const pool = await poolPromise;
+    const currentUserId = req.user.id;
+    const userRoles = req.user.roles || [];
+
+    let queryString;
+
+    // Ha edző (trainer), csak azok a felhasználók akik az ő edzéseire jelentkeztek
+    if (userRoles.includes('trainer') && !userRoles.includes('admin')) {
+      queryString = `
+        SELECT DISTINCT u.id, u.first_name, u.last_name, u.email,
+               (u.first_name + ' ' + u.last_name) as name
+        FROM users u
+        INNER JOIN event_participants ep ON u.id = ep.user_id
+        INNER JOIN events e ON ep.event_id = e.id
+        WHERE e.event_type = 'training'
+          AND e.created_by = @currentUserId
+        ORDER BY u.first_name, u.last_name
+      `;
+    } else {
+      // Admin látja az összes nem-admin és nem-trainer felhasználót
+      queryString = `
+        SELECT u.id, u.first_name, u.last_name, u.email,
+               (u.first_name + ' ' + u.last_name) as name
+        FROM users u
+        WHERE u.id NOT IN (
+          SELECT ur.user_id
+          FROM user_roles ur
+          INNER JOIN roles r ON ur.role_id = r.id
+          WHERE r.name IN ('admin', 'trainer')
+        )
+        ORDER BY u.first_name, u.last_name
+      `;
+    }
+
+    const usersResult = await pool.request()
+      .input('currentUserId', sql.Int, currentUserId)
+      .query(queryString);
+
+    res.json(usersResult.recordset);
   } catch (error) {
     next(error);
   }

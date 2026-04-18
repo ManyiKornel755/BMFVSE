@@ -15,9 +15,16 @@ export default function Messages() {
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [sendToEveryone, setSendToEveryone] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [trainerFilter, setTrainerFilter] = useState('active'); // 'active' or 'drafts'
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchAll(); }, []);
+
+  useEffect(() => {
+    if (isCoach() && !isAdmin()) {
+      fetchAll();
+    }
+  }, [trainerFilter]);
 
   useEffect(() => {
     if (sendToEveryone && members.length > 0) {
@@ -27,8 +34,11 @@ export default function Messages() {
 
   async function fetchAll() {
     try {
+      // Edzőknél a szűrő alapján kérjük az adatokat
+      const filterParam = (isCoach() && !isAdmin()) ? `?filter=${trainerFilter}` : '';
+
       const [mRes, membRes, grpRes] = await Promise.all([
-        api.get('/messages'),
+        api.get(`/messages${filterParam}`),
         api.get('/members'),
         api.get('/groups')
       ]);
@@ -119,42 +129,41 @@ export default function Messages() {
     return msg.creator_name;
   }
 
-  const draftMessages = messages.filter(m => m.status === 'draft' && !m.deleted_at);
-
-  // Lejárt üzenetek: törölt vagy lejárt üzenetek
-  const expiredMessages = messages.filter(m => {
-    // Ha törölve van, akkor lejárt
-    if (m.deleted_at) return true;
-
-    // Ha van expires_at és már lejárt
-    if (m.expires_at) {
-      const expiryDate = new Date(m.expires_at);
-      const now = new Date();
-      return expiryDate <= now;
-    }
-
-    return false;
-  });
-
-  // Aktív üzenetek: nem törölt és nem lejárt elküldött üzenetek
-  const activeMessages = messages.filter(m => {
-    if (m.status !== 'sent') return false;
-    if (m.deleted_at) return false;
-
-    if (m.expires_at) {
-      const expiryDate = new Date(m.expires_at);
-      const now = new Date();
-      return expiryDate > now;
-    }
-
-    return true;
-  });
-
   let displayedMessages = [];
-  if (filterStatus === 'all') displayedMessages = messages.filter(m => !m.deleted_at);
-  else if (filterStatus === 'draft') displayedMessages = draftMessages;
-  else if (filterStatus === 'active') displayedMessages = activeMessages;
-  else if (filterStatus === 'expired') displayedMessages = expiredMessages;
+
+  if (isAdmin()) {
+    // Admin látja az összes szűrést
+    const draftMessages = messages.filter(m => m.status === 'draft' && !m.deleted_at);
+
+    const expiredMessages = messages.filter(m => {
+      if (m.deleted_at) return true;
+      if (m.expires_at) {
+        const expiryDate = new Date(m.expires_at);
+        const now = new Date();
+        return expiryDate <= now;
+      }
+      return false;
+    });
+
+    const activeMessages = messages.filter(m => {
+      if (m.status !== 'sent') return false;
+      if (m.deleted_at) return false;
+      if (m.expires_at) {
+        const expiryDate = new Date(m.expires_at);
+        const now = new Date();
+        return expiryDate > now;
+      }
+      return true;
+    });
+
+    if (filterStatus === 'all') displayedMessages = messages.filter(m => !m.deleted_at);
+    else if (filterStatus === 'draft') displayedMessages = draftMessages;
+    else if (filterStatus === 'active') displayedMessages = activeMessages;
+    else if (filterStatus === 'expired') displayedMessages = expiredMessages;
+  } else {
+    // Edzők és userek: a backend már szűrte az üzeneteket
+    displayedMessages = messages;
+  }
 
   return (
     <div className="main-content"><Navbar />
@@ -174,6 +183,16 @@ export default function Messages() {
                 <option value="expired">Lejárt üzenetek</option>
               </select>
             )}
+            {isCoach() && !isAdmin() && (
+              <select
+                className="message-filter-dropdown"
+                value={trainerFilter}
+                onChange={(e) => setTrainerFilter(e.target.value)}
+              >
+                <option value="active">Aktív üzenetek</option>
+                <option value="drafts">Vázlatok</option>
+              </select>
+            )}
             {(isAdmin() || isCoach()) && <button className="btn-add" onClick={() => setShowCreate(true)}>Hozzáadás</button>}
           </div>
         </div>
@@ -181,10 +200,13 @@ export default function Messages() {
         <div className="card">
           {displayedMessages.length === 0 && (
             <p>
-              {filterStatus === 'all' && 'Nincsenek közlemények.'}
-              {filterStatus === 'draft' && 'Nincsenek vázlatok.'}
-              {filterStatus === 'active' && 'Nincsenek aktív üzenetek.'}
-              {filterStatus === 'expired' && 'Nincsenek lejárt üzenetek.'}
+              {isAdmin() && filterStatus === 'all' && 'Nincsenek közlemények.'}
+              {isAdmin() && filterStatus === 'draft' && 'Nincsenek vázlatok.'}
+              {isAdmin() && filterStatus === 'active' && 'Nincsenek aktív üzenetek.'}
+              {isAdmin() && filterStatus === 'expired' && 'Nincsenek lejárt üzenetek.'}
+              {isCoach() && !isAdmin() && trainerFilter === 'drafts' && 'Nincsenek vázlatok.'}
+              {isCoach() && !isAdmin() && trainerFilter === 'active' && 'Nincsenek aktív üzenetek.'}
+              {!isAdmin() && !isCoach() && 'Nincsenek aktív üzenetek.'}
             </p>
           )}
           {displayedMessages.map(msg => {
