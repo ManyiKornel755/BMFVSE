@@ -1,0 +1,69 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node-terminal",
+            "name": "Run Backend (npm run dev)",
+            "request": "launch",
+            "command": "npm run dev",
+            "cwd": "${workspaceFolder}/workingSpace/backend",
+            "env": {
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "type": "node-terminal",
+            "name": "Run Frontend (npm run dev)",
+            "request": "launch",
+            "command": "npm run dev",
+            "cwd": "${workspaceFolder}/workingSpace/frontend",
+            "env": {
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Backend Server",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/workingSpace/backend/server.js",
+            "cwd": "${workspaceFolder}/workingSpace/backend",
+            "envFile": "${workspaceFolder}/workingSpace/backend/.env",
+            "console": "integratedTerminal",
+            "restart": true,
+            "runtimeExecutable": "nodemon",
+            "runtimeArgs": [
+                "--inspect"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Email Service",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/workingSpace/backend/src/services/emailService.js",
+            "cwd": "${workspaceFolder}/workingSpace/backend",
+            "envFile": "${workspaceFolder}/workingSpace/backend/.env",
+            "console": "integratedTerminal"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Run Full Stack",
+            "configurations": [
+                "Run Backend (npm run dev)",
+                "Run Frontend (npm run dev)"
+            ],
+            "presentation": {
+                "hidden": false,
+                "group": "fullstack",
+                "order": 1
+            },
+            "stopAll": true
+        }
+    ]
+}
