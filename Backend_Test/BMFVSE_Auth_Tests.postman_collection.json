@@ -1,0 +1,249 @@
+{
+	"info": {
+		"name": "BMFVSE - Authentication Tests",
+		"description": "Authentikációs tesztek a BMFVSE backend API-hoz",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login - Sikeres bejelentkezés",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response ideje kevesebb mint 2000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+							"});",
+							"",
+							"pm.test(\"Response tartalmaz token-t\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('token');",
+							"    pm.expect(jsonData.token).to.be.a('string');",
+							"    pm.expect(jsonData.token.length).to.be.above(0);",
+							"});",
+							"",
+							"pm.test(\"Response tartalmaz user objektumot\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('user');",
+							"    pm.expect(jsonData.user).to.be.an('object');",
+							"    pm.expect(jsonData.user).to.have.property('id');",
+							"    pm.expect(jsonData.user).to.have.property('roles');",
+							"});",
+							"",
+							"pm.test(\"Token menteése environment valtozoba\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"auth_token\", jsonData.token);",
+							"    pm.environment.set(\"user_id\", jsonData.user.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"admin@bmfvse.hu\",\n    \"password\": \"admin1234\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				},
+				"description": "Sikeres bejelentkezes valid adatokkal"
+			},
+			"response": []
+		},
+		{
+			"name": "Login - Rossz jelszo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 401 - Unauthorized\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"Invalid credentials hiba\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.error.message).to.equal('Invalid credentials');",
+							"});",
+							"",
+							"pm.test(\"Nem kap token-t\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.not.have.property('token');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"admin@bmfvse.hu\",\n    \"password\": \"wrongpassword\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				},
+				"description": "Rossz jelszo tesztelese"
+			},
+			"response": []
+		},
+		{
+			"name": "Register - Sikeres regisztracio",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const timestamp = Date.now();",
+							"pm.environment.set('random_email', `testuser${timestamp}@example.com`);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 201 - Created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"User sikeresen letrehozva\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"    pm.expect(jsonData.message).to.equal('User created successfully');",
+							"});",
+							"",
+							"pm.test(\"Response tartalmaz user objektumot\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('user');",
+							"    pm.expect(jsonData.user).to.have.property('id');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"{{random_email}}\",\n    \"password\": \"password123\",\n    \"phone\": \"+36301234567\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				},
+				"description": "Uj felhasznalo regisztralasa"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Current User - Auth token-nel",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"User adatok helyes struktura\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('id');",
+							"    pm.expect(jsonData).to.have.property('name');",
+							"    pm.expect(jsonData).to.have.property('roles');",
+							"});",
+							"",
+							"pm.test(\"Roles tomb\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.roles).to.be.an('array');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/auth/me",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"me"
+					]
+				},
+				"description": "Bejelentkezett felhasznalo adatainak lekerese"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000",
+			"type": "string"
+		}
+	]
+}

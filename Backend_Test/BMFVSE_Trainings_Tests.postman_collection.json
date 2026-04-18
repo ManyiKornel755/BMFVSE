@@ -1,0 +1,264 @@
+{
+	"info": {
+		"name": "BMFVSE - Trainings Tests",
+		"description": "Edzés kezelesi tesztek a BMFVSE backend API-hoz",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Trainings",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response tomb\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Training objektumok helyes struktura\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.length > 0) {",
+							"        pm.expect(jsonData[0]).to.have.property('id');",
+							"        pm.expect(jsonData[0]).to.have.property('title');",
+							"        pm.expect(jsonData[0]).to.have.property('event_date');",
+							"        pm.expect(jsonData[0].event_type).to.equal('training');",
+							"    }",
+							"});",
+							"",
+							"pm.test(\"Response ideje kevesebb mint 1500ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(1500);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/trainings",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"trainings"
+					]
+				},
+				"description": "Osszes jovoben esedékes edzés lekerese"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Coaches List",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Coaches lista tomb\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Coach objektumok helyes mezoket tartalmaznak\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.length > 0) {",
+							"        pm.expect(jsonData[0]).to.have.property('id');",
+							"        pm.expect(jsonData[0]).to.have.property('name');",
+							"        pm.expect(jsonData[0]).to.have.property('email');",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/trainings/coaches",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"trainings",
+						"coaches"
+					]
+				},
+				"description": "Edzők listajanak lekerese"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Training by ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Training objektum helyes\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object');",
+							"    pm.expect(jsonData).to.have.property('id');",
+							"    pm.expect(jsonData).to.have.property('title');",
+							"    pm.expect(jsonData).to.have.property('event_date');",
+							"    pm.expect(jsonData).to.have.property('location');",
+							"});",
+							"",
+							"pm.test(\"Creator name property létezik\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('creator_name');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/trainings/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"trainings",
+						"1"
+					]
+				},
+				"description": "Egy edzés reszletes adatainak lekerese ID alapjan"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Training Log - Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Training log tomb\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Log bejegyzesek tartalmaznak participant count-ot\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.length > 0) {",
+							"        pm.expect(jsonData[0]).to.have.property('participants_count');",
+							"        pm.expect(jsonData[0]).to.have.property('creator_name');",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/trainings/log",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"trainings",
+						"log"
+					]
+				},
+				"description": "Edzésnapló lekerese - lejart edzesek reszletekkel (admin)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Training without Auth - 401",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 401 - Unauthorized\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"Authentikacio szukseges hiba\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('error');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/trainings",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"trainings"
+					]
+				},
+				"description": "Authentikacio nelkuli keres teszt - 401 vart"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000",
+			"type": "string"
+		}
+	]
+}

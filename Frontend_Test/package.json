@@ -1,0 +1,28 @@
+{
+  "name": "bmfvse-frontend-tests",
+  "version": "1.0.0",
+  "description": "Frontend tesztek a BMFVSE projekthez",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose"
+  },
+  "keywords": [
+    "test",
+    "jest",
+    "frontend",
+    "bmfvse"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^29.0.0",
+    "@testing-library/dom": "^9.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "jsdom": "^22.0.0",
+    "axios": "^1.4.0"
+  }
+}
