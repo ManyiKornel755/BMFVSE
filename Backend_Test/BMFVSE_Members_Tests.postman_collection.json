@@ -1,0 +1,274 @@
+{
+	"info": {
+		"name": "BMFVSE - Members Tests",
+		"description": "Tag kezelesi tesztek a BMFVSE backend API-hoz",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Members",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response tomb\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Members tartalmazzak kotelező mezőket\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.length > 0) {",
+							"        pm.expect(jsonData[0]).to.have.property('id');",
+							"        pm.expect(jsonData[0]).to.have.property('email');",
+							"        pm.expect(jsonData[0]).to.have.property('first_name');",
+							"        pm.expect(jsonData[0]).to.have.property('last_name');",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/members",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"members"
+					]
+				},
+				"description": "Osszes tag lekerese"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Member by ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Member objektum helyes struktura\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object');",
+							"    pm.expect(jsonData).to.have.property('id');",
+							"    pm.expect(jsonData).to.have.property('email');",
+							"    pm.expect(jsonData).to.have.property('first_name');",
+							"    pm.expect(jsonData).to.have.property('last_name');",
+							"});",
+							"",
+							"pm.test(\"Tags property letezik\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('tags');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/members/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"members",
+						"1"
+					]
+				},
+				"description": "Egy tag adatainak lekerese ID alapjan"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Member - Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 201 - Created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Uj member letrehozva\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('id');",
+							"    pm.expect(jsonData).to.have.property('email');",
+							"    pm.expect(jsonData).to.have.property('first_name');",
+							"    pm.expect(jsonData).to.have.property('last_name');",
+							"});",
+							"",
+							"pm.test(\"Member ID mentese\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"test_member_id\", jsonData.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"testmember@bmfvse.hu\",\n    \"password\": \"member123\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"Member\",\n    \"phone\": \"+36301111111\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/members",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"members"
+					]
+				},
+				"description": "Uj tag letrehozasa (admin jogosultsag szukseges)"
+			},
+			"response": []
+		},
+		{
+			"name": "Update Member - Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Member frissitve\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('id');",
+							"    pm.expect(jsonData).to.have.property('phone');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"first_name\": \"Updated\",\n    \"last_name\": \"Member\",\n    \"email\": \"testmember@bmfvse.hu\",\n    \"phone\": \"+36302222222\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/members/{{test_member_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"members",
+						"{{test_member_id}}"
+					]
+				},
+				"description": "Tag adatok frissitese (admin)"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Member - Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statusz kod 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Sikeres torles\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"    pm.expect(jsonData.message).to.include('deleted');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/members/{{test_member_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"members",
+						"{{test_member_id}}"
+					]
+				},
+				"description": "Tag torlese (admin)"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000",
+			"type": "string"
+		}
+	]
+}
