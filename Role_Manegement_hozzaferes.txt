@@ -1,0 +1,6 @@
+Management kezelő oldal: 
+https://cloudnomaddev.visualstudio.com/CN.BMFVSE.WaveAlert/_boards/board/t/CN.BMFVSE.WaveAlert%20Team/Stories
+
+Belépés:
+-felhasználó név: devopsguest@cloudnomad.com
+-jelszó: F*278189273127ut
