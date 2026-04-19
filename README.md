@@ -1,6 +1,6 @@
 # BMFVSE WaveAlert
 
-Webalkalmazás a BMFVSE sportegyesület működésének menedzseléséhez, beleértve az edzések szervezését, tagsági nyilvántartást, versenyjegyzőkönyveket és belső kommunikációt.
+Webalkalmazás a BMFVSE sportegyesület működésének menedzseléséhez, beleértve az edzések szervezését, versenyjegyzőkönyveket és belső kommunikációt.
 
 ## Projekt áttekintés
 
@@ -18,6 +18,7 @@ A WaveAlert egy átfogó adminisztrációs rendszer a Balatonmáriafürdői Víz
 ### Frontend
 - HTML5, CSS3, JavaScript
 - Vite build eszköz
+- React
 - Axios HTTP kérésekhez
 
 ## Kezdő lépések
