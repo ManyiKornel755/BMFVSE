@@ -1,10 +1,10 @@
 # BMFVSE WaveAlert
 
-Webalkalmazás a BMF VSE sportegyesület működésének menedzseléséhez, beleértve az edzések szervezését, tagsági nyilvántartást, versenyjegyzőkönyveket és belső kommunikációt.
+Webalkalmazás a BMFVSE sportegyesület működésének menedzseléséhez, beleértve az edzések szervezését, tagsági nyilvántartást, versenyjegyzőkönyveket és belső kommunikációt.
 
 ## Projekt áttekintés
 
-A WaveAlert egy átfogó adminisztrációs rendszer a Budapesti Metropolitan Egyetem Vízisport Egyesülete számára. A platform lehetővé teszi az adminisztrátorok és edzők számára az egyesületi tevékenységek hatékony kezelését, a tagok részvételének nyomon követését, edzések szervezését és versenydokumentáció vezetését.
+A WaveAlert egy átfogó adminisztrációs rendszer a Balatonmáriafürdői Vízisport Egyesülete számára. A platform lehetővé teszi az adminisztrátorok és edzők számára az egyesületi tevékenységek hatékony kezelését, a tagok részvételének nyomon követését, edzések szervezését és versenydokumentáció vezetését.
 
 ## Technológiai stack
 
@@ -231,18 +231,8 @@ npm run build
 4. Indítsd el a backend szervert
 5. Szolgáltasd ki a frontend build-et egy webszerveren keresztül
 
-## Közreműködés
-
-1. Fork-old a repository-t
-2. Hozz létre egy feature branch-et
-3. Commitold a változtatásaidat
-4. Push-old a branch-et
-5. Nyiss egy pull request-et
 
 ## Licensz
 
-Ez a projekt a BMF VSE belső használatára készült.
+Ez a projekt a BMFVSE belső használatára készült.
 
-## Kapcsolat
-
-Kérdések vagy támogatás esetén vedd fel a kapcsolatot a Budapesti Metropolitan Egyetem Vízisport Egyesületének fejlesztői csapatával.
